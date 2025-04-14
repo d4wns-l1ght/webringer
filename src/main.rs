@@ -19,6 +19,7 @@ struct Args {
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     let args = Args::parse();
+    let address = format!("{}:{}", args.address, args.port);
 
     let static_files = ServeDir::new("static")
         .not_found_service(ServeFile::new("static/404.html"));
@@ -32,6 +33,8 @@ async fn main() {
         // .route("/random", get(ring::random))
         .fallback_service(static_files);
 
-    let listener = tokio::net::TcpListener::bind(format!("{}:{}", args.address, args.port)).await.unwrap();
+    // TODO: Switch to tracing subscriber or whatever logging library is popular rn
+    println!("Binding to {}", address);
+    let listener = tokio::net::TcpListener::bind(address).await.unwrap();
     axum::serve(listener, router).await.unwrap();
 }
