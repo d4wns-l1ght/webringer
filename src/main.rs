@@ -1,7 +1,7 @@
 use axum::{Router, routing::get};
 use clap::{Parser, arg};
 
-/// Hey
+/// A server for hosting a webring!
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
