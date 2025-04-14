@@ -3,6 +3,8 @@ use axum::routing::{get, post};
 use tower_http::services::{ServeDir, ServeFile};
 use clap::{Parser, arg};
 
+use webringer::site::*;
+
 /// A server for hosting a webring!
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -24,13 +26,14 @@ async fn main() {
     let static_files = ServeDir::new("static")
         .not_found_service(ServeFile::new("static/404.html"));
     let router = Router::new()
-        // .route("/join", get(join::get))
-        // .route("/join", post(join::post))
-        // .route("/leave", get(leave::get))
-        // .route("/leave", post(leave::post))
-        // .route("/next", get(ring::next))
-        // .route("/next", get(ring::prev))
-        // .route("/random", get(ring::random))
+        .route("/join", get(join::get))
+        .route("/join", post(join::post))
+        .route("/leave", get(leave::get))
+        .route("/leave", post(leave::post))
+        .route("/next", get(ring::next))
+        .route("/prev", get(ring::prev))
+        .route("/random", get(ring::random))
+        .nest("/admin", admin::router())
         .fallback_service(static_files);
 
     // TODO: Switch to tracing subscriber or whatever logging library is popular rn
