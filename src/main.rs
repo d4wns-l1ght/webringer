@@ -25,6 +25,8 @@ async fn main() {
 
     let static_files = ServeDir::new("static")
         .not_found_service(ServeFile::new("static/404.html"));
+
+    // TODO: Make this a router with state, for the database and the webring struct.
     let router = Router::new()
         .route("/join", get(join::get))
         .route("/join", post(join::post))
