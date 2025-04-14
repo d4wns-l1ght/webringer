@@ -1,4 +1,6 @@
-use axum::{Router, routing::get};
+use axum::Router;
+use axum::routing::{get, post};
+use tower_http::services::{ServeDir, ServeFile};
 use clap::{Parser, arg};
 
 /// A server for hosting a webring!
@@ -17,10 +19,19 @@ struct Args {
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     let args = Args::parse();
-    // build our application with a single route
-    let app = Router::new().route("/", get(|| async { "Hello, World!" }));
 
-    // run our app with hyper, listening globally on port 3000
+    let static_files = ServeDir::new("static")
+        .not_found_service(ServeFile::new("static/404.html"));
+    let router = Router::new()
+        // .route("/join", get(join::get))
+        // .route("/join", post(join::post))
+        // .route("/leave", get(leave::get))
+        // .route("/leave", post(leave::post))
+        // .route("/next", get(ring::next))
+        // .route("/next", get(ring::prev))
+        // .route("/random", get(ring::random))
+        .fallback_service(static_files);
+
     let listener = tokio::net::TcpListener::bind(format!("{}:{}", args.address, args.port)).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, router).await.unwrap();
 }
