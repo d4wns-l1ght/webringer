@@ -1,9 +1,11 @@
+use std::sync::Arc;
 use std::time::Duration;
 
 use axum::Router;
 use axum::routing::{get, post};
 use clap::{Parser, arg};
 use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
+use tokio::sync::RwLock;
 use tower_http::services::{ServeDir, ServeFile};
 
 use webringer::ring::*;
@@ -22,7 +24,6 @@ struct Args {
     port: u16,
 }
 
-#[derive(Clone)]
 struct RingState {
     ring_data: WebRing,
     database: SqlitePool,
@@ -60,10 +61,10 @@ async fn main() {
         .route("/next", get(ring::next))
         .route("/prev", get(ring::prev))
         .route("/random", get(ring::random))
-        .with_state(RingState {
+        .with_state(Arc::new(RwLock::new(RingState {
             ring_data: WebRing {},
-            database: db_pool
-        })
+            database: db_pool,
+        })))
         .nest("/admin", admin::router())
         .fallback_service(static_files);
 
