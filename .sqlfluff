@@ -1,0 +1,8 @@
+[sqlfluff]
+dialect = sqlite
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.identifiers]
+capitalisation_policy = upper
