@@ -4,7 +4,7 @@ use std::time::Duration;
 use axum::Router;
 use axum::routing::{get, post};
 use clap::{Parser, arg};
-use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
+use sqlx::sqlite::SqlitePoolOptions;
 use tokio::sync::RwLock;
 use tower_http::services::{ServeDir, ServeFile};
 
@@ -22,11 +22,6 @@ struct Args {
     /// Port to listen on
     #[arg(short, long, value_name = "PORT", default_value_t = 10983)]
     port: u16,
-}
-
-struct RingState {
-    ring_data: WebRing,
-    database: SqlitePool,
 }
 
 // TODO: return an error or something so we don't have to keep using unwrap
