@@ -56,6 +56,7 @@ async fn main() {
         .route("/next", get(ring::next))
         .route("/prev", get(ring::prev))
         .route("/random", get(ring::random))
+        .route("/list", get(ring::list))
         .with_state(Arc::new(RwLock::new(RingState {
             ring_data: WebRing {},
             database: db_pool,

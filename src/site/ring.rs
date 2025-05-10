@@ -22,3 +22,7 @@ pub async fn random(state: State<Arc<RwLock<RingState>>>) -> Redirect {
     };
     Redirect::to(&site_url)
 }
+
+pub async fn list(state: State<Arc<RwLock<RingState>>>) -> &'static str {
+    "You want to see a list of the webring sites? sorgy.."
+}
