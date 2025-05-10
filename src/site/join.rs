@@ -28,21 +28,8 @@ pub async fn post(
     Form(data): Form<JoinForm>,
 ) -> Html<String> {
     debug!("Write locking state");
-    let state = state.write().await;
-    debug!(
-        "Running query 'INSERT INTO sites (root_url, email) values ({}, {})'",
-        data.url, data.email
-    );
-    match sqlx::query!(
-        "INSERT INTO sites (root_url, email) values (?, ?)",
-        data.url,
-        data.email
-    )
-    .bind(&data.url)
-    .bind(&data.email)
-    .execute(&state.database)
-    .await
-    {
+    let mut state = state.write().await;
+    match state.add_site(&data.url, &data.email).await {
         Ok(_query_outcome) => {
             info!("Unverified site added to database");
             Html("You want to join and you clicked the form! An admin will be in contact with you soon to verify your site.".to_owned())

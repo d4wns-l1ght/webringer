@@ -7,7 +7,7 @@ use clap::{Parser, arg};
 use sqlx::sqlite::SqlitePoolOptions;
 use tokio::sync::RwLock;
 use tower_http::services::{ServeDir, ServeFile};
-use tracing::{error, info, info_span, instrument, warn, Instrument};
+use tracing::{Instrument, error, info, info_span, instrument, warn};
 
 use webringer::ring::*;
 use webringer::site::*;
@@ -68,10 +68,7 @@ async fn main() {
         .route("/prev", get(ring::prev))
         .route("/random", get(ring::random))
         .route("/list", get(ring::list))
-        .with_state(Arc::new(RwLock::new(RingState {
-            ring_data: WebRing {},
-            database: db_pool,
-        })))
+        .with_state(Arc::new(RwLock::new(RingState::new(db_pool))))
         .nest("/admin", admin::router())
         .fallback_service(static_files);
 

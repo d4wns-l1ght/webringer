@@ -27,16 +27,11 @@ pub async fn post(
     Form(data): Form<LeaveForm>,
 ) -> Html<String> {
     debug!("Write locking state");
-    let state = state.write().await;
-    debug!("Running query 'DELETE FROM sites WHERE root_url = {}'", data.url);
-    match sqlx::query!("DELETE FROM sites WHERE root_url = ?", data.url)
-        .bind(&data.url)
-        .execute(&state.database)
-        .await
-    {
+    let mut state = state.write().await;
+    match state.remove_site(&data.url).await {
         Ok(query_outcome) => {
             if query_outcome.rows_affected() == 0 {
-                warn!("Site removal error: site does not exist");
+                info!("Someone tried to remove {} but it didn't exist", data.url);
                 Html("There has been an error: that site does not exist".to_owned())
             } else {
                 info!("Site {} removed from webring", data.url);

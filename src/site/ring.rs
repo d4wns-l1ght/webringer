@@ -21,15 +21,15 @@ pub async fn prev(state: State<Arc<RwLock<RingState>>>) -> &'static str {
 pub async fn random(state: State<Arc<RwLock<RingState>>>) -> Redirect {
     debug!("Locking state for read");
     let state = state.read().await;
-    debug!("Running query 'SELECT * FROM verified_sites ORDER BY random() LIMIT 1");
-    let site_url = match sqlx::query!("SELECT * FROM verified_sites ORDER BY random() LIMIT 1")
-        .fetch_one(&state.database)
-        .await
+    let site_url = match state.get_random_site().await
     {
-        Ok(record) => record.root_url,
+        Ok(url) => url,
         Err(e) => {
             let default_url = "Webring url".to_owned();
-            warn!("Random site error: {} Defaulting to home url {}", e, &default_url);
+            warn!(
+                "Random site error: {} Defaulting to home url {}",
+                e, &default_url
+            );
             default_url
         }
     };
