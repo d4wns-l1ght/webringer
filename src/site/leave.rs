@@ -30,6 +30,7 @@ pub async fn post(
     let state = state.write().await;
     debug!("Running query 'DELETE FROM sites WHERE root_url = {}'", data.url);
     match sqlx::query!("DELETE FROM sites WHERE root_url = ?", data.url)
+        .bind(&data.url)
         .execute(&state.database)
         .await
     {

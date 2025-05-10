@@ -29,12 +29,17 @@ pub async fn post(
 ) -> Html<String> {
     debug!("Write locking state");
     let state = state.write().await;
-    debug!("Running query 'INSERT INTO sites (root_url, email) values ({}, {})'", data.url, data.email);
+    debug!(
+        "Running query 'INSERT INTO sites (root_url, email) values ({}, {})'",
+        data.url, data.email
+    );
     match sqlx::query!(
         "INSERT INTO sites (root_url, email) values (?, ?)",
         data.url,
         data.email
     )
+    .bind(&data.url)
+    .bind(&data.email)
     .execute(&state.database)
     .await
     {
