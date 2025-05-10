@@ -12,7 +12,7 @@ use crate::ring::RingState;
 
 #[instrument]
 pub async fn get() -> &'static str {
-    warn!("join::get called");
+    info!("join::get called");
     "You want to join the webring, and you didn't click the form."
 }
 

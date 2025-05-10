@@ -12,7 +12,7 @@ use crate::ring::RingState;
 
 #[instrument]
 pub async fn get() -> &'static str {
-    warn!("leave::get called");
+    info!("leave::get called");
     "You want to leave, but the form means nothing to you...."
 }
 
