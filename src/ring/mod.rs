@@ -61,6 +61,19 @@ impl RingState {
             Err(e) => Err(e),
         }
     }
+
+    #[instrument]
+    pub async fn get_list(&self) -> Result<Vec<String>, sqlx::Error> {
+        debug!("Running query SELECT root_url FROM verified_sites ORDER BY random()");
+        Ok(
+            sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random()")
+                .fetch_all(&self.database)
+                .await?
+                .into_iter()
+                .map(|row| row.root_url)
+                .collect(),
+        )
+    }
 }
 
 #[derive(Debug)]
