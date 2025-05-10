@@ -1970,6 +1970,7 @@ dependencies = [
  "axum",
  "clap",
  "dotenvy",
+ "serde",
  "sqlx",
  "tokio",
  "tower-http",
