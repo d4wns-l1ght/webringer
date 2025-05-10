@@ -16,7 +16,8 @@ CREATE TABLE verification_details (
 );
 
 CREATE TABLE sites (
-    root_url text CHECK (TRIM(root_url) <> '') NOT NULL PRIMARY KEY,
+    id integer PRIMARY KEY,
+    root_url text CHECK (TRIM(root_url) <> '') NOT NULL UNIQUE,
     email text CHECK (TRIM(email) <> '') NOT NULL,
     verification_id integer UNIQUE,
     FOREIGN KEY (verification_id) REFERENCES verification_details (id)
@@ -25,10 +26,12 @@ CREATE TABLE sites (
 
 CREATE VIEW verified_sites
 AS SELECT
+    s.id AS site_id,
     s.root_url,
     s.email,
     v.date_added,
     v.verification_key,
+    a.id AS admin_id,
     a.username AS admin_username,
     a.email AS admin_email
 FROM sites AS s
