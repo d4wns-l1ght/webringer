@@ -1,9 +1,8 @@
 CREATE TABLE admins (
     id integer PRIMARY KEY,
-    username text CHECK (TRIM(email) <> '') NOT NULL UNIQUE,
+    username text CHECK (TRIM(username) <> '') NOT NULL UNIQUE,
     email text CHECK (TRIM(email) <> '') NOT NULL UNIQUE,
-    password_hash text CHECK (TRIM(email) <> '') NOT NULL,
-    password_salt text CHECK (TRIM(email) <> '') NOT NULL UNIQUE
+    password_phc text CHECK (TRIM(password_phc) <> '') NOT NULL UNIQUE
 );
 
 CREATE TABLE verification_details (
