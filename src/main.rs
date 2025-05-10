@@ -41,8 +41,8 @@ async fn main() {
     let db_pool = match SqlitePoolOptions::new()
         .min_connections(5)
         .max_connections(20)
-        .acquire_timeout(Duration::new(10, 0)) // 10 seconds
-        .idle_timeout(Some(Duration::new(300, 0))) // 5 minutes
+        .acquire_timeout(Duration::from_secs(10)) // 10 seconds
+        .idle_timeout(Some(Duration::from_secs(300))) // 5 minutes
         .max_lifetime(None)
         .connect(&dotenvy::var("DATABASE_URL").unwrap_or_else(|e| {
             let default_url = "sqlite://data.db".to_owned();
