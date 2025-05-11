@@ -87,17 +87,13 @@ impl RingState {
         debug!(
             "Running query SELECT root_url FROM verified_sites WHERE site_id > {id} ORDER BY site_id ASC LIMIT 1"
         );
-        match sqlx::query!(
+        Ok(sqlx::query!(
             "SELECT root_url FROM verified_sites WHERE site_id > ? ORDER BY site_id ASC LIMIT 1",
             id
         )
         .fetch_one(&self.database)
         .await
-        {
-            Ok(record) => Ok(record.root_url),
-            Err(sqlx::Error::RowNotFound) => Ok("Webring Url".to_string()),
-            Err(e) => Err(anyhow!(e)),
-        }
+        .map(|r| r.root_url)?)
     }
 
     #[instrument]
@@ -106,17 +102,13 @@ impl RingState {
         debug!(
             "Running query SELECT root_url FROM verified_sites WHERE site_id < {id} ORDER BY site_id ASC LIMIT 1"
         );
-        match sqlx::query!(
+        Ok(sqlx::query!(
             "SELECT root_url FROM verified_sites WHERE site_id < ? ORDER BY site_id ASC LIMIT 1",
             id
         )
         .fetch_one(&self.database)
         .await
-        {
-            Ok(record) => Ok(record.root_url),
-            Err(sqlx::Error::RowNotFound) => Ok("Webring Url".to_string()),
-            Err(e) => Err(anyhow!(e)),
-        }
+        .map(|r| r.root_url)?)
     }
 
     #[instrument]
@@ -129,6 +121,9 @@ impl RingState {
         .fetch_one(&self.database)
         .await?
         .site_id
+        // TODO: Make this some kind of custom error so that site::ring knows what to do with
+        // it. Currently it just redirects the user to the base site without any feedback that
+        // the originating site is not a verified site
         .ok_or(anyhow!("Site url {root_url} is not a verified site"))
     }
 }

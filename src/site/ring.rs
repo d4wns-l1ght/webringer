@@ -67,12 +67,8 @@ pub async fn random(State(state): State<Arc<RwLock<RingState>>>) -> impl IntoRes
         }
         Err(e) => match e.downcast_ref::<sqlx::Error>() {
             Some(sqlx::Error::RowNotFound) => {
-                let default_url = "Webring url".to_owned();
-                warn!(
-                    "No webring sites available. Defaulting to home url {}",
-                    &default_url
-                );
-                Redirect::to(&default_url).into_response()
+                warn!("No webring sites available. Redirecting user to website home");
+                Redirect::to(".").into_response()
             }
             _ => {
                 error!("Error when getting random site: {e}");
@@ -97,7 +93,7 @@ pub async fn list(State(state): State<Arc<RwLock<RingState>>>) -> impl IntoRespo
                 }
                 _ => {
                     error!("Error when getting the list of sites: {}", e);
-                    return http::StatusCode::INTERNAL_SERVER_ERROR.into_response()
+                    return http::StatusCode::INTERNAL_SERVER_ERROR.into_response();
                 }
             },
         }
