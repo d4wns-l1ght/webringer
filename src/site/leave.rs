@@ -8,7 +8,7 @@ use serde::Deserialize;
 use tokio::sync::RwLock;
 use tracing::{debug, info, instrument, warn};
 
-use crate::ring::RingState;
+use crate::ring::{RingError, RingState};
 
 #[instrument]
 pub async fn get() -> &'static str {
@@ -29,18 +29,21 @@ pub async fn post(
     debug!("Write locking state");
     let mut state = state.write().await;
     match state.remove_site(&data.url).await {
-        Ok(query_outcome) => {
-            if query_outcome.rows_affected() == 0 {
-                info!("Someone tried to remove {} but it didn't exist", data.url);
-                Html("There has been an error: that site does not exist".to_owned())
-            } else {
-                info!("Site {} removed from webring", data.url);
-                Html("Your site has been removed from the webring!".to_owned())
-            }
+        Ok(()) => Html("Your site has been removed from the webring!".to_owned()),
+        Err(RingError::SiteNotPresent(site)) => {
+            Html(format!("The site {site} isn't present in our systems"))
         }
+        Err(RingError::UnrecoverableDatabaseError(_e)) => Html(
+            "We are having some backend problems currently, please try again later".to_string(),
+        ),
         Err(e) => {
-            warn!("Error removing site: {}", e);
-            Html(format!("There was an error: {}", e))
+            warn!(
+                "The remove_site function is returning an error we're not designed to handle: {}",
+                e
+            );
+            Html(
+                "We are having some backend problems currently, please try again later".to_string(),
+            )
         }
     }
 }

@@ -7,9 +7,9 @@ use axum::{
 };
 use serde::Deserialize;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, info, instrument, warn};
 
-use crate::ring::RingState;
+use crate::ring::{RingError, RingState};
 
 #[derive(Debug, Deserialize)]
 pub struct MoveParams {
@@ -23,17 +23,7 @@ pub async fn next(
 ) -> impl IntoResponse {
     debug!("Locking state for read");
     let state = state.read().await;
-    match state.get_next(&params.current).await {
-        Ok(url) => Redirect::to(&url),
-        Err(e) => match e.downcast_ref::<sqlx::Error>() {
-            Some(sqlx::Error::RowNotFound) => Redirect::to("."),
-            _ => {
-                error!("Error getting next site: {e}");
-                info!("Redirecting user to {0}", params.current);
-                Redirect::to(&params.current)
-            }
-        },
-    }
+    next_prev_redirect(state.get_next(&params.current).await, params.current).await
 }
 
 #[instrument]
@@ -43,16 +33,34 @@ pub async fn prev(
 ) -> impl IntoResponse {
     debug!("Locking state for read");
     let state = state.read().await;
-    match state.get_prev(&params.current).await {
-        Ok(url) => Redirect::to(&url),
-        Err(e) => match e.downcast_ref::<sqlx::Error>() {
-            Some(sqlx::Error::RowNotFound) => Redirect::to("."),
-            _ => {
-                error!("Error getting next site: {e}");
-                info!("Redirecting user to {0}", params.current);
-                Redirect::to(&params.current)
-            }
-        },
+    next_prev_redirect(state.get_next(&params.current).await, params.current).await
+}
+
+#[instrument]
+async fn next_prev_redirect(
+    url: Result<String, RingError>,
+    original_url: String,
+) -> impl IntoResponse {
+    match url {
+        Ok(url) => {
+            debug!("Redirecting user to {url}");
+            Redirect::to(&url).into_response()
+        }
+        Err(RingError::SiteNotVerified(_url)) => http::StatusCode::UNAUTHORIZED.into_response(),
+        Err(RingError::RowNotFound(_query)) => {
+            debug!("End of webring found, redirecting user to home");
+            Redirect::to(".").into_response()
+        }
+        Err(RingError::UnrecoverableDatabaseError(_e)) => {
+            Redirect::to(&original_url).into_response()
+        }
+        Err(e) => {
+            warn!(
+                "The next_prev_redirect function is returning an error we're not designed to handle: {}",
+                e
+            );
+            Redirect::to(&original_url).into_response()
+        }
     }
 }
 
@@ -65,16 +73,15 @@ pub async fn random(State(state): State<Arc<RwLock<RingState>>>) -> impl IntoRes
             info!("Redirecting user to {}", &url);
             Redirect::to(&url).into_response()
         }
-        Err(e) => match e.downcast_ref::<sqlx::Error>() {
-            Some(sqlx::Error::RowNotFound) => {
-                warn!("No webring sites available. Redirecting user to website home");
-                Redirect::to(".").into_response()
-            }
-            _ => {
-                error!("Error when getting random site: {e}");
-                http::StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
-        },
+        Err(RingError::RowNotFound(_query)) => {
+            // TODO: Indicate this to the user somehow
+            warn!("There are currently no verified sites in the webring");
+            Redirect::to(".").into_response()
+        }
+        Err(e) => {
+            warn!("{e}");
+            Redirect::to(".").into_response()
+        }
     }
 }
 
@@ -86,16 +93,14 @@ pub async fn list(State(state): State<Arc<RwLock<RingState>>>) -> impl IntoRespo
         let state = state.read().await;
         match state.get_list().await {
             Ok(urls) => urls,
-            Err(e) => match e.downcast_ref::<sqlx::Error>() {
-                Some(sqlx::Error::RowNotFound) => {
-                    info!("No rows found for list");
-                    vec![]
-                }
-                _ => {
-                    error!("Error when getting the list of sites: {}", e);
-                    return http::StatusCode::INTERNAL_SERVER_ERROR.into_response();
-                }
-            },
+            Err(RingError::RowNotFound(_query)) => {
+                warn!("There are currently no verified sites in the webring");
+                vec![]
+            }
+            Err(e) => {
+                warn!("{e}");
+                vec![]
+            }
         }
     } {
         output = output + &format!("<li><a href=\"{url}\">{url}</a></li>");

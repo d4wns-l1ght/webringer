@@ -8,7 +8,7 @@ use serde::Deserialize;
 use tokio::sync::RwLock;
 use tracing::{debug, info, instrument, warn};
 
-use crate::ring::RingState;
+use crate::ring::{RingError, RingState};
 
 #[instrument]
 pub async fn get() -> &'static str {
@@ -30,13 +30,18 @@ pub async fn post(
     debug!("Write locking state");
     let mut state = state.write().await;
     match state.add_site(&data.url, &data.email).await {
-        Ok(_query_outcome) => {
-            info!("Unverified site added to database");
+        Ok(()) => {
             Html("You want to join and you clicked the form! An admin will be in contact with you soon to verify your site.".to_owned())
         }
+        Err(RingError::SiteAlreadyPresent(site)) => {
+            Html(format!("The site {site} has already been registered"))
+        }
+        Err(RingError::UnrecoverableDatabaseError(_e)) => {
+            Html("We are having some backend problems currently, please try again later".to_string())
+        }
         Err(e) => {
-            warn!("Error adding site: {}", e);
-            Html("There was an error when registering your site - are you sure you haven't registered it before?".to_string())
+            warn!("The add_site function is returning an error we're not designed to handle: {}",e);
+            Html("We are having some backend problems currently, please try again later".to_string())
         }
     }
 }
