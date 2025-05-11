@@ -1,5 +1,6 @@
 //! This module handles the actual webring capabilities
 
+use anyhow::{Result, anyhow};
 use sqlx::{SqlitePool, sqlite::SqliteQueryResult};
 use tracing::{debug, instrument};
 
@@ -22,12 +23,12 @@ impl RingState {
         &mut self,
         root_url: &str,
         email: &str,
-    ) -> Result<SqliteQueryResult, sqlx::Error> {
+    ) -> Result<SqliteQueryResult> {
         debug!(
             "Running query 'INSERT INTO sites (root_url, email) values ({}, {})'",
             root_url, email
         );
-        sqlx::query!(
+        Ok(sqlx::query!(
             "INSERT INTO sites (root_url, email) values (?, ?)",
             root_url,
             email
@@ -35,35 +36,40 @@ impl RingState {
         .bind(root_url)
         .bind(email)
         .execute(&self.database)
-        .await
+        .await?)
     }
 
     #[instrument]
-    pub async fn remove_site(&mut self, root_url: &str) -> Result<SqliteQueryResult, sqlx::Error> {
+    pub async fn remove_site(
+        &mut self,
+        root_url: &str,
+    ) -> Result<SqliteQueryResult> {
         debug!(
             "Running query 'DELETE FROM sites WHERE root_url = {}'",
             root_url
         );
-        sqlx::query!("DELETE FROM sites WHERE root_url = ?", root_url)
-            .bind(root_url)
-            .execute(&self.database)
-            .await
+        Ok(
+            sqlx::query!("DELETE FROM sites WHERE root_url = ?", root_url)
+                .bind(root_url)
+                .execute(&self.database)
+                .await?,
+        )
     }
 
     #[instrument]
-    pub async fn get_random_site(&self) -> Result<String, sqlx::Error> {
+    pub async fn get_random_site(&self) -> Result<String> {
         debug!("Running query 'SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1");
         match sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1")
             .fetch_one(&self.database)
             .await
         {
             Ok(record) => Ok(record.root_url),
-            Err(e) => Err(e),
+            Err(e) => Err(anyhow!(e)),
         }
     }
 
     #[instrument]
-    pub async fn get_list(&self) -> Result<Vec<String>, sqlx::Error> {
+    pub async fn get_list(&self) -> Result<Vec<String>> {
         debug!("Running query SELECT root_url FROM verified_sites ORDER BY random()");
         Ok(
             sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random()")
