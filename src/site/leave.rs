@@ -1,12 +1,9 @@
-use std::sync::Arc;
-
 use axum::{
     extract::{Form, State},
     response::{Html, IntoResponse},
 };
 use serde::Deserialize;
-use tokio::sync::RwLock;
-use tracing::{debug, info, instrument, warn};
+use tracing::{info, instrument, warn};
 
 use crate::ring::{RingError, RingState};
 
@@ -23,11 +20,9 @@ pub struct LeaveForm {
 
 #[instrument]
 pub async fn post(
-    State(state): State<Arc<RwLock<RingState>>>,
+    State(state): State<RingState>,
     Form(data): Form<LeaveForm>,
 ) -> impl IntoResponse {
-    debug!("Write locking state");
-    let mut state = state.write().await;
     match state.remove_site(&data.url).await {
         Ok(()) => Html("Your site has been removed from the webring!".to_owned()),
         Err(RingError::SiteNotPresent(site)) => {

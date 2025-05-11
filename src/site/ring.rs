@@ -1,12 +1,9 @@
-use std::sync::Arc;
-
 use axum::{
     extract::{Query, State},
     http,
     response::{Html, IntoResponse, Redirect},
 };
 use serde::Deserialize;
-use tokio::sync::RwLock;
 use tracing::{debug, info, instrument, warn};
 
 use crate::ring::{RingError, RingState};
@@ -19,21 +16,17 @@ pub struct MoveParams {
 #[instrument]
 pub async fn next(
     Query(params): Query<MoveParams>,
-    State(state): State<Arc<RwLock<RingState>>>,
+    State(state): State<RingState>,
 ) -> impl IntoResponse {
-    debug!("Locking state for read");
-    let state = state.read().await;
     next_prev_redirect(state.get_next(&params.current).await, params.current).await
 }
 
 #[instrument]
 pub async fn prev(
     Query(params): Query<MoveParams>,
-    State(state): State<Arc<RwLock<RingState>>>,
+    State(state): State<RingState>,
 ) -> impl IntoResponse {
-    debug!("Locking state for read");
-    let state = state.read().await;
-    next_prev_redirect(state.get_next(&params.current).await, params.current).await
+    next_prev_redirect(state.get_prev(&params.current).await, params.current).await
 }
 
 #[instrument]
@@ -65,9 +58,7 @@ async fn next_prev_redirect(
 }
 
 #[instrument]
-pub async fn random(State(state): State<Arc<RwLock<RingState>>>) -> impl IntoResponse {
-    debug!("Locking state for read");
-    let state = state.read().await;
+pub async fn random(State(state): State<RingState>) -> impl IntoResponse {
     match state.get_random_site().await {
         Ok(url) => {
             info!("Redirecting user to {}", &url);
@@ -86,11 +77,9 @@ pub async fn random(State(state): State<Arc<RwLock<RingState>>>) -> impl IntoRes
 }
 
 #[instrument]
-pub async fn list(State(state): State<Arc<RwLock<RingState>>>) -> impl IntoResponse {
+pub async fn list(State(state): State<RingState>) -> impl IntoResponse {
     let mut output: String = "<p>Webring sites:</p><ul>".to_owned();
     for url in {
-        debug!("Locking state for read");
-        let state = state.read().await;
         match state.get_list().await {
             Ok(urls) => urls,
             Err(RingError::RowNotFound(_query)) => {

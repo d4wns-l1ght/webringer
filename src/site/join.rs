@@ -1,12 +1,9 @@
-use std::sync::Arc;
-
 use axum::{
     extract::{Form, State},
     response::{Html, IntoResponse},
 };
 use serde::Deserialize;
-use tokio::sync::RwLock;
-use tracing::{debug, info, instrument, warn};
+use tracing::{info, instrument, warn};
 
 use crate::ring::{RingError, RingState};
 
@@ -23,12 +20,7 @@ pub struct JoinForm {
 }
 
 #[instrument]
-pub async fn post(
-    State(state): State<Arc<RwLock<RingState>>>,
-    Form(data): Form<JoinForm>,
-) -> impl IntoResponse {
-    debug!("Write locking state");
-    let mut state = state.write().await;
+pub async fn post(State(state): State<RingState>, Form(data): Form<JoinForm>) -> impl IntoResponse {
     match state.add_site(&data.url, &data.email).await {
         Ok(()) => {
             Html("You want to join and you clicked the form! An admin will be in contact with you soon to verify your site.".to_owned())

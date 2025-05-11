@@ -1,11 +1,9 @@
-use std::sync::Arc;
 use std::time::Duration;
 
 use axum::Router;
 use axum::routing::{get, post};
 use clap::{Parser, arg};
 use sqlx::sqlite::SqlitePoolOptions;
-use tokio::sync::RwLock;
 use tower_http::services::{ServeDir, ServeFile};
 use tracing::{Instrument, error, info, info_span, instrument, warn};
 
@@ -59,6 +57,8 @@ async fn main() {
         }
     };
 
+    let backend = RingState::new(db_pool);
+
     let router = Router::new()
         .route("/join", get(join::get))
         .route("/join", post(join::post))
@@ -68,7 +68,7 @@ async fn main() {
         .route("/prev", get(ring::prev))
         .route("/random", get(ring::random))
         .route("/list", get(ring::list))
-        .with_state(Arc::new(RwLock::new(RingState::new(db_pool))))
+        .with_state(backend)
         .nest("/admin", admin::router())
         .fallback_service(static_files);
 

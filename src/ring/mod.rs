@@ -34,7 +34,7 @@ impl RingState {
     /// Returns [RingError::SiteAlreadyPresent] if the site has already been registered
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
-    pub async fn add_site(&mut self, root_url: &str, email: &str) -> Result<(), RingError> {
+    pub async fn add_site(&self, root_url: &str, email: &str) -> Result<(), RingError> {
         debug!(
             "Running query 'INSERT INTO sites (root_url, email) values ({}, {})'",
             root_url, email
@@ -78,7 +78,7 @@ impl RingState {
     /// Returns [RingError::SiteNotPresent] if the site is not present
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
-    pub async fn remove_site(&mut self, root_url: &str) -> Result<(), RingError> {
+    pub async fn remove_site(&self, root_url: &str) -> Result<(), RingError> {
         debug!(
             "Running query 'DELETE FROM sites WHERE root_url = {}'",
             root_url
