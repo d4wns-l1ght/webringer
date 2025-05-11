@@ -10,6 +10,9 @@ pub struct RingState {
     database: SqlitePool,
 }
 
+#[derive(Debug)]
+struct WebRing {}
+
 #[derive(Debug, Error)]
 pub enum RingError {
     #[error("The query {0} did not return any rows")]
@@ -32,6 +35,9 @@ impl RingState {
         }
     }
 
+    /// Add a site to the webring
+    /// Returns [RingError::SiteAlreadyPresent] if the site has already been registered
+    /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn add_site(&mut self, root_url: &str, email: &str) -> Result<(), RingError> {
         debug!(
@@ -73,6 +79,9 @@ impl RingState {
         }
     }
 
+    /// Removes a site from the webring
+    /// Returns [RingError::SiteNotPresent] if the site is not present
+    /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn remove_site(&mut self, root_url: &str) -> Result<(), RingError> {
         debug!(
@@ -103,42 +112,10 @@ impl RingState {
         }
     }
 
-    #[instrument]
-    pub async fn get_random_site(&self) -> Result<String, RingError> {
-        debug!("Running query 'SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1");
-        match sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1")
-            .fetch_one(&self.database)
-            .await
-        {
-            Ok(record) => Ok(record.root_url),
-            Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
-                "SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1".to_owned(),
-            )),
-            Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
-                Err(RingError::UnrecoverableDatabaseError(e))
-            }
-        }
-    }
-
-    #[instrument]
-    pub async fn get_list(&self) -> Result<Vec<String>, RingError> {
-        debug!("Running query SELECT root_url FROM verified_sites ORDER BY random()");
-        match sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random()")
-            .fetch_all(&self.database)
-            .await
-        {
-            Ok(urls) => Ok(urls.into_iter().map(|row| row.root_url).collect()),
-            Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
-                "SELECT root_url FROM verified_sites ORDER BY random()".to_owned(),
-            )),
-            Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
-                Err(RingError::UnrecoverableDatabaseError(e))
-            }
-        }
-    }
-
+    /// Gets the webring site after the current one
+    /// Returns [RingError::SiteNotVerified] if the current site is not part of the webring
+    /// Returns [RingError::RowNotFound] if the current site is last in the webring
+    /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn get_next(&self, current_url: &str) -> Result<String, RingError> {
         let id = self.get_verified_id(current_url).await?;
@@ -158,6 +135,10 @@ impl RingState {
         }
     }
 
+    /// Gets the webring site before the current one
+    /// Returns [RingError::SiteNotVerified] if the current site is not part of the webring
+    /// Returns [RingError::RowNotFound] if the current site is last in the webring
+    /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn get_prev(&self, current_url: &str) -> Result<String, RingError> {
         let id = self.get_verified_id(current_url).await?;
@@ -203,7 +184,46 @@ impl RingState {
             }
         }
     }
-}
 
-#[derive(Debug)]
-struct WebRing {}
+    /// Gets a random site from the webring
+    /// Returns [RingError::RowNotFound] if there are no verified sites
+    /// Otherwise, [RingError::UnrecoverableDatabaseError]
+    #[instrument]
+    pub async fn get_random_site(&self) -> Result<String, RingError> {
+        debug!("Running query 'SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1");
+        match sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1")
+            .fetch_one(&self.database)
+            .await
+        {
+            Ok(record) => Ok(record.root_url),
+            Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
+                "SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1".to_owned(),
+            )),
+            Err(e) => {
+                error!("There was an unrecoverable database error: {}", e);
+                Err(RingError::UnrecoverableDatabaseError(e))
+            }
+        }
+    }
+
+    /// Gets a list of all webring sites
+    /// Returns [RingError::RowNotFound] if there are no verified sites
+    /// Otherwise, [RingError::UnrecoverableDatabaseError]
+    #[instrument]
+    pub async fn get_list(&self) -> Result<Vec<String>, RingError> {
+        debug!("Running query SELECT root_url FROM verified_sites ORDER BY random()");
+        match sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random()")
+            .fetch_all(&self.database)
+            .await
+        {
+            Ok(urls) => Ok(urls.into_iter().map(|row| row.root_url).collect()),
+            Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
+                "SELECT root_url FROM verified_sites ORDER BY random()".to_owned(),
+            )),
+            Err(e) => {
+                error!("There was an unrecoverable database error: {}", e);
+                Err(RingError::UnrecoverableDatabaseError(e))
+            }
+        }
+    }
+}
