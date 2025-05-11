@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Form, State},
-    response::Html,
+    response::{Html, IntoResponse},
 };
 use serde::Deserialize;
 use tokio::sync::RwLock;
@@ -25,7 +25,7 @@ pub struct LeaveForm {
 pub async fn post(
     State(state): State<Arc<RwLock<RingState>>>,
     Form(data): Form<LeaveForm>,
-) -> Html<String> {
+) -> impl IntoResponse {
     debug!("Write locking state");
     let mut state = state.write().await;
     match state.remove_site(&data.url).await {

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Form, State},
-    response::Html,
+    response::{Html, IntoResponse},
 };
 use serde::Deserialize;
 use tokio::sync::RwLock;
@@ -26,7 +26,7 @@ pub struct JoinForm {
 pub async fn post(
     State(state): State<Arc<RwLock<RingState>>>,
     Form(data): Form<JoinForm>,
-) -> Html<String> {
+) -> impl IntoResponse {
     debug!("Write locking state");
     let mut state = state.write().await;
     match state.add_site(&data.url, &data.email).await {

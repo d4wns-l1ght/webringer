@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Query, State},
-    response::{Html, Redirect},
+    http,
+    response::{Html, IntoResponse, Redirect},
 };
 use serde::Deserialize;
 use tokio::sync::RwLock;
@@ -19,7 +20,7 @@ pub struct MoveParams {
 pub async fn next(
     Query(params): Query<MoveParams>,
     State(state): State<Arc<RwLock<RingState>>>,
-) -> Redirect {
+) -> impl IntoResponse {
     debug!("Locking state for read");
     let state = state.read().await;
     match state.get_next(&params.current).await {
@@ -35,7 +36,7 @@ pub async fn next(
 pub async fn prev(
     Query(params): Query<MoveParams>,
     State(state): State<Arc<RwLock<RingState>>>,
-) -> Redirect {
+) -> impl IntoResponse {
     debug!("Locking state for read");
     let state = state.read().await;
     match state.get_prev(&params.current).await {
@@ -48,7 +49,7 @@ pub async fn prev(
 }
 
 #[instrument]
-pub async fn random(state: State<Arc<RwLock<RingState>>>) -> Redirect {
+pub async fn random(state: State<Arc<RwLock<RingState>>>) -> impl IntoResponse {
     debug!("Locking state for read");
     let state = state.read().await;
     let site_url = match state.get_random_site().await {
