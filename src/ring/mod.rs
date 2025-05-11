@@ -80,6 +80,57 @@ impl RingState {
                 .collect(),
         )
     }
+
+    #[instrument]
+    pub async fn get_next(&self, current_url: &str) -> Result<String> {
+        let id = self.get_verified_id(current_url).await?;
+        debug!(
+            "Running query SELECT root_url FROM verified_sites WHERE site_id > {id} ORDER BY site_id ASC LIMIT 1"
+        );
+        match sqlx::query!(
+            "SELECT root_url FROM verified_sites WHERE site_id > ? ORDER BY site_id ASC LIMIT 1",
+            id
+        )
+        .fetch_one(&self.database)
+        .await
+        {
+            Ok(record) => Ok(record.root_url),
+            Err(sqlx::Error::RowNotFound) => Ok("Webring Url".to_string()),
+            Err(e) => Err(anyhow!(e)),
+        }
+    }
+
+    #[instrument]
+    pub async fn get_prev(&self, current_url: &str) -> Result<String> {
+        let id = self.get_verified_id(current_url).await?;
+        debug!(
+            "Running query SELECT root_url FROM verified_sites WHERE site_id < {id} ORDER BY site_id ASC LIMIT 1"
+        );
+        match sqlx::query!(
+            "SELECT root_url FROM verified_sites WHERE site_id < ? ORDER BY site_id ASC LIMIT 1",
+            id
+        )
+        .fetch_one(&self.database)
+        .await
+        {
+            Ok(record) => Ok(record.root_url),
+            Err(sqlx::Error::RowNotFound) => Ok("Webring Url".to_string()),
+            Err(e) => Err(anyhow!(e)),
+        }
+    }
+
+    #[instrument]
+    async fn get_verified_id(&self, root_url: &str) -> Result<i64> {
+        debug!("Running query SELECT site_id FROM verified_sites WHERE root_url={root_url}");
+        sqlx::query!(
+            "SELECT site_id FROM verified_sites WHERE root_url=?",
+            root_url
+        )
+        .fetch_one(&self.database)
+        .await?
+        .site_id
+        .ok_or(anyhow!("Site url {root_url} is not a verified site"))
+    }
 }
 
 #[derive(Debug)]

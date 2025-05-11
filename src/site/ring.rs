@@ -1,19 +1,50 @@
 use std::sync::Arc;
 
-use axum::{extract::State, response::{Html, Redirect}};
+use axum::{
+    extract::{Query, State},
+    response::{Html, Redirect},
+};
+use serde::Deserialize;
 use tokio::sync::RwLock;
 use tracing::{debug, info, instrument, warn};
 
 use crate::ring::RingState;
 
-#[instrument]
-pub async fn next(state: State<Arc<RwLock<RingState>>>) -> &'static str {
-    "You are attempting to go to the next site"
+#[derive(Debug, Deserialize)]
+pub struct MoveParams {
+    current: String,
 }
 
 #[instrument]
-pub async fn prev(state: State<Arc<RwLock<RingState>>>) -> &'static str {
-    "You'd like to go to the previous site"
+pub async fn next(
+    Query(params): Query<MoveParams>,
+    State(state): State<Arc<RwLock<RingState>>>,
+) -> Redirect {
+    debug!("Locking state for read");
+    let state = state.read().await;
+    match state.get_next(&params.current).await {
+        Ok(url) => Redirect::to(&url),
+        Err(e) => {
+            warn!("Error getting next site: {e}");
+            Redirect::to(&params.current)
+        }
+    }
+}
+
+#[instrument]
+pub async fn prev(
+    Query(params): Query<MoveParams>,
+    State(state): State<Arc<RwLock<RingState>>>,
+) -> Redirect {
+    debug!("Locking state for read");
+    let state = state.read().await;
+    match state.get_prev(&params.current).await {
+        Ok(url) => Redirect::to(&url),
+        Err(e) => {
+            warn!("Error getting next site: {e}");
+            Redirect::to(&params.current)
+        }
+    }
 }
 
 #[instrument]
