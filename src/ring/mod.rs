@@ -6,12 +6,8 @@ use tracing::{debug, error, info, instrument};
 
 #[derive(Debug)]
 pub struct RingState {
-    ring_data: WebRing,
     database: SqlitePool,
 }
-
-#[derive(Debug)]
-struct WebRing {}
 
 #[derive(Debug, Error)]
 pub enum RingError {
@@ -30,7 +26,6 @@ pub enum RingError {
 impl RingState {
     pub fn new(database: SqlitePool) -> Self {
         RingState {
-            ring_data: WebRing {},
             database,
         }
     }
