@@ -4,16 +4,22 @@ use axum::{
 };
 
 mod deny;
-mod login;
 mod verify;
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", get(async || "TODO! Admin view"))
+        .route("/", get(landing_page))
+        .route("/view", get(view))
         .route("/deny", get(deny::get))
         .route("/deny", post(deny::post))
         .route("/approve", get(verify::get))
         .route("/approve", post(verify::post))
-        .route("/login", get(login::get))
-        .route("/login", post(login::post))
+}
+
+async fn landing_page() -> &'static str {
+    "TODO! Admin view"
+}
+
+async fn view() -> &'static str {
+    "TODO! Admin view"
 }

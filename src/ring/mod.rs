@@ -2,9 +2,12 @@
 
 use sqlx::SqlitePool;
 use thiserror::Error;
+use tokio::task;
 use tracing::{debug, error, info, instrument};
 
-#[derive(Debug)]
+pub mod auth;
+
+#[derive(Debug, Clone)]
 pub struct RingState {
     database: SqlitePool,
 }
@@ -19,15 +22,15 @@ pub enum RingError {
     SiteAlreadyPresent(String),
     #[error("The site {0} is not present in the database")]
     SiteNotPresent(String),
-    #[error("The database had some kind of issue we couldn't recover from: {0}")]
-    UnrecoverableDatabaseError(sqlx::Error),
+    #[error(transparent)]
+    UnrecoverableDatabaseError(#[from] sqlx::Error),
+    #[error(transparent)]
+    TaskJoin(#[from] task::JoinError),
 }
 
 impl RingState {
     pub fn new(database: SqlitePool) -> Self {
-        RingState {
-            database,
-        }
+        RingState { database }
     }
 
     /// Add a site to the webring
