@@ -3,7 +3,7 @@ use std::time::Duration;
 use axum::Router;
 use axum::routing::{get, post};
 use axum_login::tower_sessions::{MemoryStore, SessionManagerLayer};
-use axum_login::{AuthManagerLayerBuilder, login_required};
+use axum_login::AuthManagerLayerBuilder;
 use clap::{Parser, arg};
 use sqlx::sqlite::SqlitePoolOptions;
 use tower_http::services::{ServeDir, ServeFile};
@@ -75,7 +75,6 @@ async fn main() {
         .route("/list", get(ring::list))
         .with_state(backend)
         .nest("/admin", admin::router())
-        .route_layer(login_required!(RingState, login_url = "/login"))
         .route("/login", get(login::get))
         .route("/login", post(login::post))
         .layer(auth_layer)

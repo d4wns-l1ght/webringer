@@ -1,5 +1,6 @@
 //! This module handles the actual webring capabilities
 
+use argon2::password_hash;
 use sqlx::SqlitePool;
 use thiserror::Error;
 use tokio::task;
@@ -26,6 +27,8 @@ pub enum RingError {
     UnrecoverableDatabaseError(#[from] sqlx::Error),
     #[error(transparent)]
     TaskJoin(#[from] task::JoinError),
+    #[error("Password verification error: {0}")]
+    PasswordVerification(password_hash::Error),
 }
 
 impl RingState {

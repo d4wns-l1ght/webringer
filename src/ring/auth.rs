@@ -1,10 +1,11 @@
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use async_trait::async_trait;
 use axum_login::{AuthUser, AuthnBackend, UserId};
-use password_auth::verify_password;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use std::fmt::Debug;
 use tokio::task;
+use tracing::{debug, error, info};
 
 use super::{RingError, RingState};
 
@@ -67,13 +68,42 @@ impl AuthnBackend for RingState {
         &self,
         creds: Self::Credentials,
     ) -> Result<Option<Self::User>, Self::Error> {
-        let admin: Option<Self::User> = sqlx::query_as("SELECT * FROM admins WHERE username = ?")
-            .bind(creds.username)
+        let admin = match sqlx::query_as::<_, Admin>("SELECT * FROM admins WHERE username = ?")
+            .bind(&creds.username)
             .fetch_optional(&self.database)
-            .await?;
+            .await?
+        {
+            Some(admin) => admin,
+            None => {
+                debug!("Couldn't find an admin with username {}", creds.username);
+                return Ok(None);
+            }
+        };
 
-        task::spawn_blocking(|| {
-            Ok(admin.filter(|a| verify_password(creds.password, &a.password_phc).is_ok()))
+        // Verifying the password is blocking and potentially slow, so we'll do so via `spawn_blocking`.
+        task::spawn_blocking(move || {
+            let password_hash = match PasswordHash::new(&admin.password_phc) {
+                Ok(parsed_hash) => parsed_hash,
+                Err(e) => {
+                    error!("Error parsing stored password hash for {:?}: {}", admin, e);
+                    return Err(RingError::PasswordVerification(e));
+                }
+            };
+
+            match Argon2::default().verify_password(creds.password.as_bytes(), &password_hash) {
+                Ok(()) => {
+                    info!("Verified admin {:?}", admin);
+                    Ok(Some(admin))
+                }
+                Err(argon2::password_hash::Error::Password) => {
+                    info!("Invalid login to admin {:?}", admin);
+                    Ok(None)
+                }
+                Err(e) => {
+                    info!("Problem when verfifying password: {}", e);
+                    Err(RingError::PasswordVerification(e))
+                }
+            }
         })
         .await?
     }
