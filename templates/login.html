@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<title>WebRinger - Admin login</title>
+	<link href="css/style.css" rel="stylesheet" />
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width" />
+</head>
+
+<body>
+	<h1>WebRinger</h1>
+	<img src="logo.svg" width=256>
+    {% for message in messages %}
+    <p>{{ message }}</p>
+    {% endfor %}
+
+
+	<p>Login here:</p>
+	<form method="post" action="login">
+		<label>
+			Username
+			<input required name="username" id="username" placeholder="webringadmin"> </label>
+		<label>
+			Password
+			<input required type="password" name="password" id="password" placeholder="password"> </label>
+		<input type="submit" value="Login">
+	</form>
+
+	{% if let Some(next) = next %}
+	<input type="hidden" name="next" value="{{next}}" />
+	{% endif %}
+</body>
+
+</html>
