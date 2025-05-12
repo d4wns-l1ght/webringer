@@ -1,10 +1,11 @@
+use askama::Template;
 use axum::{
     extract::{Query, State},
-    http,
+    http::{self, StatusCode},
     response::{Html, IntoResponse, Redirect},
 };
 use serde::Deserialize;
-use tracing::{debug, info, instrument, warn};
+use tracing::{debug, error, info, instrument, warn};
 
 use crate::ring::{RingError, RingState};
 
@@ -76,25 +77,34 @@ pub async fn random(State(state): State<RingState>) -> impl IntoResponse {
     }
 }
 
+#[derive(Template)]
+#[template(path = "list.html")]
+pub struct ListTemplate {
+    sites: Vec<String>,
+}
+
 #[instrument]
 pub async fn list(State(state): State<RingState>) -> impl IntoResponse {
-    let mut output: String = "<p>Webring sites:</p><ul>".to_owned();
-    for url in {
-        match state.get_list().await {
-            Ok(urls) => urls,
-            Err(RingError::RowNotFound(_query)) => {
-                warn!("There are currently no verified sites in the webring");
-                vec![]
-            }
-            Err(e) => {
-                warn!("{e}");
-                vec![]
-            }
+    match match state.get_list().await {
+        Ok(sites) => ListTemplate { sites },
+        Err(RingError::RowNotFound(_query)) => {
+            warn!("There are currently no verified sites in the webring");
+            ListTemplate { sites: vec![] }
         }
-    } {
-        output = output + &format!("<li><a href=\"{url}\">{url}</a></li>");
+        Err(e) => {
+            error!("{e}");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
     }
-    output += "</ul>";
-    debug!("Sending html: {output}");
-    Html(output).into_response()
+    .render()
+    {
+        Ok(s) => {
+            debug!("Successfully rendered list html");
+            Html(s).into_response()
+        }
+        Err(e) => {
+            error!("Error when rendering list html: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
 }

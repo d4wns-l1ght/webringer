@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<title>WebRinger - Site list</title>
+	<link href="css/style.css" rel="stylesheet" />
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width" />
+</head>
+
+<body>
+	<h1>WebRinger</h1>
+	<img src="logo.svg" width=256>
+	<h2>Sites</h2>
+	<ul>
+		{% for site in sites %}
+		<li><a href={{ site }}>{{ site }}</a></li>
+		{% endfor %}
+	</ul>
+</body>
+
+</html>
