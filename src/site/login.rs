@@ -5,6 +5,7 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse, Redirect},
 };
+use axum_messages::{Message, Messages};
 use serde::Deserialize;
 use tracing::{debug, error};
 
@@ -13,6 +14,7 @@ use crate::ring::auth::{AuthSession, Credentials};
 #[derive(Template)]
 #[template(path = "login.html")]
 pub struct LoginTemplate {
+    messages: Vec<Message>,
     next: Option<String>,
 }
 
@@ -25,6 +27,7 @@ pub struct NextUrl {
 
 pub async fn post(
     mut auth_session: AuthSession,
+    messages: Messages,
     Form(creds): Form<Credentials>,
 ) -> impl IntoResponse {
     let admin = match auth_session.authenticate(creds.clone()).await {
@@ -33,8 +36,8 @@ pub async fn post(
             admin
         }
         Ok(None) => {
-            // TODO: User response that they didn't log in
             debug!("Authentication failed with credentials {:?}", &creds);
+            messages.error("Invalid credentials");
             let mut login_url = "/login".to_owned();
             if let Some(next) = creds.next {
                 login_url = format!("{}?next={}", login_url, next)
@@ -43,7 +46,8 @@ pub async fn post(
             return Redirect::to(&login_url);
         }
         Err(e) => {
-            // TODO: User response to tell about error
+            // TODO: Maybe make this return a statuscode instead?
+            messages.error(format!("Error when authenticating admin: {}", e));
             error!("Error when authenticating admin: {}", e);
             return Redirect::to(".");
         }
@@ -63,8 +67,11 @@ pub async fn post(
     }
 }
 
-pub async fn get(Query(NextUrl { next }): Query<NextUrl>) -> impl IntoResponse {
-    let t = LoginTemplate { next };
+pub async fn get(messages: Messages, Query(NextUrl { next }): Query<NextUrl>) -> impl IntoResponse {
+    let t = LoginTemplate {
+        messages: messages.into_iter().collect(),
+        next,
+    };
     match t.render() {
         Ok(s) => {
             debug!("Successfully rendered login html");
