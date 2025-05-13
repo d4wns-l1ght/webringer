@@ -220,4 +220,43 @@ impl RingState {
             }
         }
     }
+
+    #[instrument]
+    pub async fn add_admin(
+        &self,
+        username: String,
+        email: String,
+        password_plaintext: String,
+    ) -> Result<(), RingError> {
+        debug!("Add admin function running");
+        let password_hashed = auth::hash_password(password_plaintext).await?;
+        match sqlx::query!(
+            "INSERT INTO admins (username, email, password_phc) values (?, ?, ?)",
+            username,
+            email,
+            password_hashed
+        )
+        .execute(&self.database)
+        .await
+        {
+            Ok(_query_result) => {
+                info!("Added admin to database: {} {}", username, email);
+                Ok(())
+            }
+            Err(sqlx::Error::Database(ref e)) if e.code().as_deref() == Some("2067") => {
+                info!(
+                    "Admin username {} or email {} already taken",
+                    username, email
+                );
+                Err(RingError::UniqueRowAlreadyPresent(format!(
+                    "{} {}",
+                    username, email
+                )))
+            }
+            Err(e) => {
+                error!("There was an unrecoverable database error: {}", e);
+                Err(RingError::UnrecoverableDatabaseError(e))
+            }
+        }
+    }
 }

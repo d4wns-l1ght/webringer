@@ -6,6 +6,7 @@ use axum_login::login_required;
 
 use crate::ring::RingState;
 
+mod add;
 mod deny;
 mod verify;
 
@@ -17,6 +18,8 @@ pub fn router(state: RingState) -> Router {
         .route("/deny", post(deny::post))
         .route("/approve", get(verify::get))
         .route("/approve", post(verify::post))
+        .route("/add", get(add::get))
+        .route("/add", post(add::post))
         .with_state(state)
         .route_layer(login_required!(RingState, login_url = "/login"))
 }
