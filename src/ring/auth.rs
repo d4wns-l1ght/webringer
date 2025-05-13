@@ -1,13 +1,38 @@
-use argon2::{Argon2, PasswordHash, PasswordVerifier};
+use argon2::{
+    Argon2,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
+};
 use async_trait::async_trait;
 use axum_login::{AuthUser, AuthnBackend, UserId};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use std::fmt::Debug;
-use tokio::task;
+use tokio::task::{self};
 use tracing::{debug, error, info};
 
 use super::{RingError, RingState};
+
+pub(super) async fn hash_password(password_plaintext: String) -> Result<String, RingError> {
+    match task::spawn_blocking(move || {
+        let argon2 = Argon2::default();
+        let salt = SaltString::generate(&mut OsRng);
+        let password_hash = argon2
+            .hash_password(password_plaintext.as_bytes(), &salt)
+            .unwrap();
+        password_hash.to_string()
+    })
+    .await
+    {
+        Ok(password) => {
+            debug!("Successfully hashed password");
+            Ok(password)
+        }
+        Err(e) => {
+            error!("Error when joining task");
+            Err(RingError::TaskJoin(e))
+        }
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize, FromRow)]
 pub struct Admin {
