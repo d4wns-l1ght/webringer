@@ -69,9 +69,8 @@ pub async fn random(State(state): State<RingState>) -> impl IntoResponse {
             Redirect::to(&url).into_response()
         }
         Err(RingError::RowNotFound(_query)) => {
-            // TODO: Indicate this to the user somehow
             warn!("There are currently no verified sites in the webring");
-            Redirect::to(".").into_response()
+            Html("<h1>Error</h1><br><p>There are currently no verified sites in the webring :( Maybe you should add yours!").into_response()
         }
         Err(e) => {
             warn!("{e}");
