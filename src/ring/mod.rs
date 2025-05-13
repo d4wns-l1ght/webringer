@@ -17,11 +17,11 @@ pub struct RingState {
 pub enum RingError {
     #[error("The query {0} did not return any rows")]
     RowNotFound(String),
+    #[error("The row {0} is already present in the database")]
+    UniqueRowAlreadyPresent(String),
     #[error("The site {0} is not verified")]
     SiteNotVerified(String),
     #[error("The site {0} is already present in the database")]
-    SiteAlreadyPresent(String),
-    #[error("The site {0} is not present in the database")]
     SiteNotPresent(String),
     #[error(transparent)]
     UnrecoverableDatabaseError(#[from] sqlx::Error),
@@ -65,13 +65,13 @@ impl RingState {
                         "Someone tried to register their site {} but it was already registered",
                         root_url
                     );
-                    Err(RingError::SiteAlreadyPresent(root_url.to_owned()))
                 } else {
                     error!("There was an unrecoverable database error: {}", e);
                     Err(RingError::UnrecoverableDatabaseError(
                         sqlx::Error::Database(e),
                     ))
                 }
+                Err(RingError::UniqueRowAlreadyPresent(root_url.to_owned()))
             }
             Err(e) => {
                 error!("There was an unrecoverable database error: {}", e);

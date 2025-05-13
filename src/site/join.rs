@@ -25,7 +25,7 @@ pub async fn post(State(state): State<RingState>, Form(data): Form<JoinForm>) ->
         Ok(()) => {
             Html("You want to join and you clicked the form! An admin will be in contact with you soon to verify your site.".to_owned())
         }
-        Err(RingError::SiteAlreadyPresent(site)) => {
+        Err(RingError::UniqueRowAlreadyPresent(site)) => {
             Html(format!("The site {site} has already been registered"))
         }
         Err(RingError::UnrecoverableDatabaseError(_e)) => {
