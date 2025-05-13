@@ -40,7 +40,10 @@ async fn next_prev_redirect(
             debug!("Redirecting user to {url}");
             Redirect::to(&url).into_response()
         }
-        Err(RingError::SiteNotVerified(_url)) => http::StatusCode::UNAUTHORIZED.into_response(),
+        Err(RingError::SiteNotVerified(url)) => {
+            debug!("Site {} unauthorized", url);
+            http::StatusCode::UNAUTHORIZED.into_response()
+        }
         Err(RingError::RowNotFound(_query)) => {
             debug!("End of webring found, redirecting user to home");
             Redirect::to(".").into_response()
