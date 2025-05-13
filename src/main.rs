@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use axum::Router;
 use axum::routing::{get, post};
-use axum_login::tower_sessions::{MemoryStore, SessionManagerLayer};
 use axum_login::AuthManagerLayerBuilder;
+use axum_login::tower_sessions::{MemoryStore, SessionManagerLayer};
 use axum_messages::MessagesManagerLayer;
 use clap::{Parser, arg};
 use sqlx::sqlite::SqlitePoolOptions;
@@ -80,6 +80,7 @@ async fn main() {
         .route("/login", post(login::post))
         .layer(MessagesManagerLayer)
         .layer(auth_layer)
+        .nest_service("/static", static_files.clone())
         .fallback_service(static_files);
 
     info!("Binding to {}", address);
