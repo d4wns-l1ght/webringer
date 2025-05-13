@@ -59,18 +59,11 @@ impl RingState {
                 info!("Unverified site {} added to database", root_url);
                 Ok(())
             }
-            Err(sqlx::Error::Database(e)) => {
-                if e.code().as_deref() == Some("2067") {
-                    info!(
-                        "Someone tried to register their site {} but it was already registered",
-                        root_url
-                    );
-                } else {
-                    error!("There was an unrecoverable database error: {}", e);
-                    Err(RingError::UnrecoverableDatabaseError(
-                        sqlx::Error::Database(e),
-                    ))
-                }
+            Err(sqlx::Error::Database(ref e)) if e.code().as_deref() == Some("2067") => {
+                info!(
+                    "Someone tried to register their site {} but it was already registered",
+                    root_url
+                );
                 Err(RingError::UniqueRowAlreadyPresent(root_url.to_owned()))
             }
             Err(e) => {
