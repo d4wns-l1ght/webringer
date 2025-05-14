@@ -7,6 +7,7 @@ use axum_login::tower_sessions::{MemoryStore, SessionManagerLayer};
 use axum_messages::MessagesManagerLayer;
 use clap::{Parser, arg};
 use sqlx::sqlite::SqlitePoolOptions;
+use tokio::signal;
 use tower_http::services::{ServeDir, ServeFile};
 use tracing::{Instrument, error, info, info_span, instrument, warn};
 
@@ -94,7 +95,16 @@ async fn main() {
             panic!()
         }
     };
-    if let Err(e) = axum::serve(listener, router).await {
+    if let Err(e) = axum::serve(listener, router)
+        .with_graceful_shutdown(async {
+            if let Err(e) = signal::ctrl_c().await {
+                error!("Failed to listen for ctrl_c signal: {}", e);
+                panic!()
+            }
+            info!("Gracefully shutting down from SIGINT");
+        })
+        .await
+    {
         error!("Axum serving error: {}", e)
     }
 }
