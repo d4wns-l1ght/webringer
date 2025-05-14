@@ -6,6 +6,7 @@ use axum_login::AuthManagerLayerBuilder;
 use axum_login::tower_sessions::{MemoryStore, SessionManagerLayer};
 use axum_messages::MessagesManagerLayer;
 use clap::{Parser, arg};
+use sqlx::SqlitePool;
 use sqlx::sqlite::SqlitePoolOptions;
 use tokio::signal;
 use tower_http::services::{ServeDir, ServeFile};
@@ -27,20 +28,8 @@ struct Args {
     port: u16,
 }
 
-#[tokio::main(flavor = "current_thread")]
-#[instrument]
-async fn main() {
-    tracing_subscriber::fmt::init();
-    if let Err(e) = dotenvy::dotenv() {
-        warn!("No .env file found: {}", e);
-    }
-
-    let args = Args::parse();
-    let address = format!("{}:{}", args.address, args.port);
-
-    let static_files = ServeDir::new("static").not_found_service(ServeFile::new("static/404.html"));
-
-    let db_pool = match SqlitePoolOptions::new()
+async fn get_db_pool() -> SqlitePool {
+    match SqlitePoolOptions::new()
         .min_connections(5)
         .max_connections(20)
         .acquire_timeout(Duration::from_secs(10)) // 10 seconds
@@ -59,11 +48,27 @@ async fn main() {
             error!("Could not connect to database: {}", e);
             panic!();
         }
-    };
+    }
+}
+
+#[tokio::main(flavor = "current_thread")]
+#[instrument]
+async fn main() {
+    tracing_subscriber::fmt::init();
+    if let Err(e) = dotenvy::dotenv() {
+        warn!("No .env file found: {}", e);
+    }
+
+    let args = Args::parse();
+    let address = format!("{}:{}", args.address, args.port);
+
+    let static_files = ServeDir::new("static").not_found_service(ServeFile::new("static/404.html"));
+
+    let db_pool = get_db_pool();
 
     let session_store = MemoryStore::default();
     let session_layer = SessionManagerLayer::new(session_store);
-    let backend = RingState::new(db_pool);
+    let backend = RingState::new(db_pool.await);
     let auth_layer = AuthManagerLayerBuilder::new(backend.clone(), session_layer).build();
 
     let router = Router::new()
