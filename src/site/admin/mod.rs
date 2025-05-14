@@ -14,12 +14,11 @@ pub fn router(state: RingState) -> Router {
     Router::new()
         .route("/", get(landing_page))
         .route("/view", get(view))
-        .route("/deny", get(deny::get))
         .route("/deny", post(deny::post))
-        .route("/approve", get(verify::get))
         .route("/approve", post(verify::post))
         .route("/add", get(add::get))
         .route("/add", post(add::post))
+        .route("/logout", post(logout))
         .with_state(state)
         .route_layer(login_required!(RingState, login_url = "/login"))
 }
@@ -30,4 +29,8 @@ async fn landing_page() -> &'static str {
 
 async fn view() -> &'static str {
     "TODO! Admin view"
+}
+
+async fn logout() -> &'static str {
+    "TODO! Admin logout"
 }
