@@ -1,14 +1,11 @@
 use askama::Template;
 use axum::{
-    Router,
-    http::StatusCode,
-    response::{Html, IntoResponse},
-    routing::{get, post},
+    http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Router
 };
 use axum_login::login_required;
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 
-use crate::ring::RingState;
+use crate::ring::{auth::AuthSession, RingState};
 
 mod add;
 mod deny;
@@ -48,6 +45,11 @@ async fn view() -> &'static str {
     "TODO! Admin view"
 }
 
-async fn logout() -> &'static str {
-    "TODO! Admin logout"
+async fn logout(mut auth_session: AuthSession) -> impl IntoResponse {
+    match auth_session.logout().await {
+        Ok(Some(admin)) => debug!("Successfully logged out admin {:?}", admin),
+        Ok(None) => warn!("Tried to logout but there was no active user"),
+        Err(e) => error!("Error when logging out admin: {}", e),
+    };
+    ([("content-length", "0")], Redirect::to("/"))
 }
