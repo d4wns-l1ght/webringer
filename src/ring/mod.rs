@@ -289,7 +289,40 @@ impl RingState {
                 )))
             }
             Err(e) => {
-                error!("There was an unrecoverable database error in add_admin: {}", e);
+                error!(
+                    "There was an unrecoverable database error in add_admin: {}",
+                    e
+                );
+                Err(RingError::UnrecoverableDatabaseError(e))
+            }
+        }
+    }
+    #[instrument]
+    pub async fn delete_admin(&self, admin_id: i64) -> Result<(), RingError> {
+        match sqlx::query("DELETE FROM admins WHERE id = ?")
+            .bind(admin_id)
+            .execute(&self.database)
+            .await
+        {
+            Ok(query) if query.rows_affected() == 0 => {
+                error!("No admin found to delete. {:?}", query);
+                Err(RingError::RowNotFound(format!(
+                    "Admin with admin id {:?}",
+                    admin_id
+                )))
+            }
+            Ok(query) => {
+                info!(
+                    "Successfully deleted admin account with id {:?}: {:?}",
+                    admin_id, query
+                );
+                Ok(())
+            }
+            Err(e) => {
+                error!(
+                    "There was a database error when trying to delete admin with id {}: {}",
+                    admin_id, e
+                );
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }
