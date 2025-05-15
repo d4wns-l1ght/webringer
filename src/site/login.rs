@@ -69,11 +69,14 @@ pub async fn post(
 }
 
 pub async fn get(messages: Messages, Query(NextUrl { next }): Query<NextUrl>) -> impl IntoResponse {
-    let t = LoginTemplate {
-        messages: messages.into_iter().collect(),
-        next,
-    };
-    match t.render() {
+    match {
+        LoginTemplate {
+            messages: messages.into_iter().collect(),
+            next,
+        }
+    }
+    .render()
+    {
         Ok(s) => {
             debug!("Successfully rendered login html");
             Html(s).into_response()
