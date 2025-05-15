@@ -88,7 +88,9 @@ pub struct ListTemplate {
 #[instrument]
 pub async fn list(State(state): State<RingState>) -> impl IntoResponse {
     match match state.get_list_verified().await {
-        Ok(sites) => ListTemplate { sites },
+        Ok(sites) => ListTemplate {
+            sites: sites.into_iter().map(|site| site.root_url).collect(),
+        },
         Err(RingError::RowNotFound(_query)) => {
             warn!("There are currently no verified sites in the webring");
             ListTemplate { sites: vec![] }

@@ -1,12 +1,28 @@
 //! This module handles the actual webring capabilities
 
 use argon2::password_hash;
-use sqlx::SqlitePool;
+use serde::{Deserialize, Serialize};
+use sqlx::{FromRow, SqlitePool};
 use thiserror::Error;
 use tokio::task;
 use tracing::{debug, error, info, instrument};
 
 pub mod auth;
+
+#[derive(Clone, Serialize, Deserialize, FromRow)]
+pub struct VerifiedSite {
+    pub id: i64,
+    pub root_url: String,
+    pub email: String,
+    pub verification_id: i64,
+}
+
+#[derive(Clone, Serialize, Deserialize, FromRow)]
+pub struct UnverifiedSite {
+    pub id: i64,
+    pub root_url: String,
+    pub email: String,
+}
 
 #[derive(Debug, Clone)]
 pub struct RingState {
@@ -204,13 +220,13 @@ impl RingState {
     /// Returns [RingError::RowNotFound] if there are no verified sites
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
-    pub async fn get_list_verified(&self) -> Result<Vec<String>, RingError> {
-        debug!("Running query SELECT root_url FROM verified_sites ORDER BY random()");
-        match sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random()")
+    pub async fn get_list_verified(&self) -> Result<Vec<VerifiedSite>, RingError> {
+        debug!("Running query SELECT * FROM verified_sites ORDER BY random()");
+        match sqlx::query_as("SELECT * FROM verified_sites ORDER BY random()")
             .fetch_all(&self.database)
             .await
         {
-            Ok(urls) => Ok(urls.into_iter().map(|row| row.root_url).collect()),
+            Ok(sites) => Ok(sites),
             Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
                 "SELECT root_url FROM verified_sites ORDER BY random()".to_owned(),
             )),
@@ -219,6 +235,12 @@ impl RingState {
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }
+    }
+
+    /// Gets a list of all unverified webring sites
+    #[instrument]
+    pub async fn get_list_unverified(&self) -> Result<Vec<UnverifiedSite>, RingError> {
+        todo!()
     }
 
     #[instrument]
