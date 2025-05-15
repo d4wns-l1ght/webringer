@@ -200,11 +200,11 @@ impl RingState {
         }
     }
 
-    /// Gets a list of all webring sites
+    /// Gets a list of all verified webring sites
     /// Returns [RingError::RowNotFound] if there are no verified sites
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
-    pub async fn get_list(&self) -> Result<Vec<String>, RingError> {
+    pub async fn get_list_verified(&self) -> Result<Vec<String>, RingError> {
         debug!("Running query SELECT root_url FROM verified_sites ORDER BY random()");
         match sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random()")
             .fetch_all(&self.database)
