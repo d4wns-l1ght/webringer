@@ -25,7 +25,7 @@ pub async fn post(
 ) -> impl IntoResponse {
     match state.remove_site(&data.url).await {
         Ok(()) => Html("Your site has been removed from the webring!".to_owned()),
-        Err(RingError::SiteNotPresent(site)) => {
+        Err(RingError::RowNotFound(site)) => {
             Html(format!("The site {site} isn't present in our systems"))
         }
         Err(RingError::UnrecoverableDatabaseError(_e)) => Html(

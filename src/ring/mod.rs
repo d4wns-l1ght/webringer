@@ -37,8 +37,6 @@ pub enum RingError {
     UniqueRowAlreadyPresent(String),
     #[error("The site {0} is not verified")]
     SiteNotVerified(String),
-    #[error("The site {0} is already present in the database")]
-    SiteNotPresent(String),
     #[error(transparent)]
     UnrecoverableDatabaseError(#[from] sqlx::Error),
     #[error(transparent)]
@@ -109,7 +107,7 @@ impl RingState {
                         "Someone tried to remove their site {} but it was already not there",
                         root_url
                     );
-                    Err(RingError::SiteNotPresent(root_url.to_owned()))
+                    Err(RingError::RowNotFound(root_url.to_owned()))
                 } else {
                     info!("Site {} removed from webring", root_url);
                     Ok(())
