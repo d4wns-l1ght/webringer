@@ -43,6 +43,8 @@ pub enum RingError {
     TaskJoin(#[from] task::JoinError),
     #[error("Password verification error: {0}")]
     PasswordVerification(password_hash::Error),
+    #[error("An admin method was called outside of an authorised session")]
+    UnauthorisedAdmin,
 }
 
 impl RingState {
