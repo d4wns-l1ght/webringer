@@ -58,7 +58,7 @@ async fn view(State(state): State<RingState>) -> impl IntoResponse {
                 Ok(sites) => sites,
                 Err(RingError::RowNotFound(_query)) => vec![],
                 Err(e) => {
-                    error!("{e}");
+                    error!("Error when getting the admin view of sites: {e}");
                     return StatusCode::INTERNAL_SERVER_ERROR.into_response();
                 }
             }

@@ -7,13 +7,13 @@ use axum_login::{AuthUser, AuthnBackend, UserId};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use std::fmt::Debug;
-use tokio::task::{self};
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, instrument};
 
 use super::{RingError, RingState};
 
+#[instrument]
 pub(super) async fn hash_password(password_plaintext: String) -> Result<String, RingError> {
-    match task::spawn_blocking(move || {
+    match tokio::task::spawn_blocking(move || {
         let argon2 = Argon2::default();
         let salt = SaltString::generate(&mut OsRng);
         let password_hash = argon2
@@ -106,7 +106,7 @@ impl AuthnBackend for RingState {
         };
 
         // Verifying the password is blocking and potentially slow, so we'll do so via `spawn_blocking`.
-        task::spawn_blocking(move || {
+        tokio::task::spawn_blocking(move || {
             let password_hash = match PasswordHash::new(&admin.password_phc) {
                 Ok(parsed_hash) => parsed_hash,
                 Err(e) => {

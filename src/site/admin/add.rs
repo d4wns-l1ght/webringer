@@ -62,12 +62,12 @@ pub async fn post(
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
             RingError::UnrecoverableDatabaseError(e) => {
-                error!("Unrecoverable database error: {}", e);
+                error!("Unrecoverable database error when adding admin: {}", e);
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
             e => {
                 error!(
-                    "Recieved an error this function is not equipped to handle: {}",
+                    "Recieved an error site::admin::add::post is not equipped to handle: {}",
                     e
                 );
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()

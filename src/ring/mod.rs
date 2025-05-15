@@ -83,7 +83,7 @@ impl RingState {
                 Err(RingError::UniqueRowAlreadyPresent(root_url.to_owned()))
             }
             Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
+                error!("There was an unrecoverable database error in add_site: {}", e);
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }
@@ -116,7 +116,7 @@ impl RingState {
                 }
             }
             Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
+                error!("There was an unrecoverable database error in remove_site: {}", e);
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }
@@ -165,7 +165,7 @@ impl RingState {
             Ok(record) => Ok(record.root_url),
             Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound("SELECT root_url FROM verified_sites WHERE site_id < ? ORDER BY site_id ASC LIMIT 1".to_owned())),
             Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
+                error!("There was an unrecoverable database error in get_prev: {}", e);
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }
@@ -189,7 +189,7 @@ impl RingState {
                 return Err(RingError::SiteNotVerified(root_url.to_owned()));
             }
             Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
+                error!("There was an unrecoverable database error in get_verified_id: {}", e);
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }
@@ -210,7 +210,7 @@ impl RingState {
                 "SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1".to_owned(),
             )),
             Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
+                error!("There was an unrecoverable database error in get_random_site: {}", e);
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }
@@ -231,7 +231,7 @@ impl RingState {
                 "SELECT root_url FROM verified_sites ORDER BY random()".to_owned(),
             )),
             Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
+                error!("There was an unrecoverable database error in get_list_verified: {}", e);
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }
@@ -250,7 +250,7 @@ impl RingState {
                 "SELECT * FROM unverified_sites ORDER BY id".to_owned(),
             )),
             Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
+                error!("There was an unrecoverable database error in get_list_unverified: {}", e);
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }
@@ -289,7 +289,7 @@ impl RingState {
                 )))
             }
             Err(e) => {
-                error!("There was an unrecoverable database error: {}", e);
+                error!("There was an unrecoverable database error in add_admin: {}", e);
                 Err(RingError::UnrecoverableDatabaseError(e))
             }
         }

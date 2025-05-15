@@ -96,7 +96,7 @@ pub async fn list(State(state): State<RingState>) -> impl IntoResponse {
             ListTemplate { sites: vec![] }
         }
         Err(e) => {
-            error!("{e}");
+            error!("Error when getting the list of verified sites: {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     }
