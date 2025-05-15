@@ -1,11 +1,15 @@
 use askama::Template;
 use axum::{
-    http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Router
+    Router,
+    extract::State,
+    http::StatusCode,
+    response::{Html, IntoResponse, Redirect},
+    routing::{get, post},
 };
 use axum_login::login_required;
 use tracing::{debug, error, warn};
 
-use crate::ring::{auth::AuthSession, RingState};
+use crate::ring::{RingError, RingState, UnverifiedSite, auth::AuthSession};
 
 mod add;
 mod deny;
@@ -41,8 +45,36 @@ async fn landing_page() -> impl IntoResponse {
     }
 }
 
-async fn view() -> &'static str {
-    "TODO! Admin view"
+#[derive(Template)]
+#[template(path = "admin/sites_view.html")]
+pub struct AdminViewSitesTemplate {
+    unverified_sites: Vec<UnverifiedSite>,
+}
+
+async fn view(State(state): State<RingState>) -> impl IntoResponse {
+    match (AdminViewSitesTemplate {
+        unverified_sites: {
+            match state.get_list_unverified().await {
+                Ok(sites) => sites,
+                Err(RingError::RowNotFound(_query)) => vec![],
+                Err(e) => {
+                    error!("{e}");
+                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                }
+            }
+        },
+    })
+    .render()
+    {
+        Ok(s) => {
+            debug!("Successfully rendered admin list view html");
+            Html(s).into_response()
+        }
+        Err(e) => {
+            error!("Error when rendering list html: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
 }
 
 async fn logout(mut auth_session: AuthSession) -> impl IntoResponse {

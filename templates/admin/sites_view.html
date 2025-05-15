@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<title>WebRinger - Admin</title>
+	<link href="css/style.css" rel="stylesheet" />
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width" />
+</head>
+
+<body>
+	<h1>WebRinger - Approve/Deny sites</h1>
+	<a href="/"><img src="/static/logo.svg" width=256></a>
+	<table>
+		<tr>
+			<th>URL</th>
+			<th>Email</th>
+			<th>Approve/Deny</th>
+		</tr>
+		{% for site in unverified_sites %}
+		<tr>
+			<td><a href="{{ site.root_url }}">{{ site.root_url }}</a></td>
+			<td><a href="mailto:{{ site.email }}">{{ site.email }}</a></td>
+			<td>
+				<form action="/admin/approve?siteurl={{ site.root_url }}" method="post"><button
+						type="submit">Approve</button></form>
+				<form action="/admin/deny?siteurl={{ site.root_url }}" method="post"><button type="submit">Deny</button>
+				</form>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</body>
+
+</html>

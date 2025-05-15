@@ -240,7 +240,20 @@ impl RingState {
     /// Gets a list of all unverified webring sites
     #[instrument]
     pub async fn get_list_unverified(&self) -> Result<Vec<UnverifiedSite>, RingError> {
-        todo!()
+        debug!("SELECT * FROM unverified_sites ORDER BY id");
+        match sqlx::query_as("SELECT * FROM unverified_sites ORDER BY id")
+            .fetch_all(&self.database)
+            .await
+        {
+            Ok(sites) => Ok(sites),
+            Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
+                "SELECT * FROM unverified_sites ORDER BY id".to_owned(),
+            )),
+            Err(e) => {
+                error!("There was an unrecoverable database error: {}", e);
+                Err(RingError::UnrecoverableDatabaseError(e))
+            }
+        }
     }
 
     #[instrument]
