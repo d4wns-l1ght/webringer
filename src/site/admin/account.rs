@@ -1,8 +1,10 @@
 use askama::Template;
 use axum::{
+    Router,
     extract::{Query, State},
     http::StatusCode,
     response::{Html, IntoResponse, Redirect},
+    routing::{get, post},
 };
 use axum_login::AuthUser;
 use serde::Deserialize;
@@ -13,6 +15,13 @@ use crate::ring::{
     auth::{Admin, AuthSession},
 };
 
+pub(super) fn router(state: RingState) -> Router {
+    Router::new()
+        .route("/", get(view))
+        .route("/delete", post(delete_account))
+        .with_state(state)
+}
+
 #[derive(Template)]
 #[template(path = "admin/account.html")]
 pub struct AdminAccountViewTemplate {
@@ -20,10 +29,7 @@ pub struct AdminAccountViewTemplate {
     delete_button_pressed: bool,
 }
 
-pub(super) async fn get(
-    auth_session: AuthSession,
-    Query(params): Query<DeleteParams>,
-) -> impl IntoResponse {
+async fn view(auth_session: AuthSession, Query(params): Query<DeleteParams>) -> impl IntoResponse {
     match (AdminAccountViewTemplate {
         admin: match auth_session.user {
             Some(admin) => admin,
@@ -60,7 +66,7 @@ pub struct DeleteParams {
     delete_confirmed: Option<String>,
 }
 
-pub(super) async fn post_delete_account(
+async fn delete_account(
     mut auth_session: AuthSession,
     State(state): State<RingState>,
     Query(params): Query<DeleteParams>,
