@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<title>WebRinger - Account</title>
+	<link href="css/style.css" rel="stylesheet" />
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width" />
+</head>
+
+<body>
+	<h1>WebRinger</h1>
+	<a href="/"><img src="/static/logo.svg" width=256></a>
+	<div>
+		<p>Username</p>
+		<p>{{admin.username}}</p>
+	</div>
+	<div>
+		<p>Email</p>
+		<p>{{admin.email}}</p>
+	</div>
+	<form method="post" action="account/delete">
+		<input type="submit" value="Delete Account">
+	</form>
+	{% if delete_button_pressed %}
+	<form method="post" action="account/delete?delete_confirmed=true">
+		<input type="submit" value="Are you sure? Click here to confirm">
+	</form>
+	{% endif %}
+</body>
+
+</html>

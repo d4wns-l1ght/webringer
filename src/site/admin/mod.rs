@@ -11,6 +11,7 @@ use tracing::{debug, error, warn};
 
 use crate::ring::{RingError, RingState, UnverifiedSite, auth::AuthSession};
 
+mod account;
 mod add;
 mod deny;
 mod verify;
@@ -24,6 +25,8 @@ pub fn router(state: RingState) -> Router {
         .route("/add", get(add::get))
         .route("/add", post(add::post))
         .route("/logout", post(logout))
+        .route("/account", get(account::get))
+        .route("/account/delete", post(account::post_delete_account))
         .with_state(state)
         .route_layer(login_required!(RingState, login_url = "/login"))
 }
