@@ -37,7 +37,7 @@ impl Debug for AddAdminForm {
     }
 }
 
-pub async fn post(
+pub(super) async fn post(
     State(state): State<RingState>,
     messages: Messages,
     Form(data): Form<AddAdminForm>,
@@ -79,7 +79,7 @@ pub async fn post(
     }
 }
 
-pub async fn get(messages: Messages) -> impl IntoResponse {
+pub(super) async fn get(messages: Messages) -> impl IntoResponse {
     match {
         AdminAddTemplate {
             messages: messages.into_iter().collect(),
