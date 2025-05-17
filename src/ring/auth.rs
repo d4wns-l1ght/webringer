@@ -7,11 +7,10 @@ use axum_login::{AuthUser, AuthnBackend, UserId};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use std::fmt::Debug;
-use tracing::{debug, error, info, instrument};
+use tracing::{debug, error, info};
 
 use super::{RingError, RingState};
 
-#[instrument]
 pub(super) async fn hash_password(password_plaintext: String) -> Result<String, RingError> {
     match tokio::task::spawn_blocking(move || {
         let argon2 = Argon2::default();
