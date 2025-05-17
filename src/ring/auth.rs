@@ -141,4 +141,40 @@ impl AuthnBackend for RingState {
     }
 }
 
+impl RingState {
+    pub async fn change_password(
+        &mut self,
+        logged_in_user: &Admin,
+        current_password_plaintext: String,
+        new_password_plaintext: String,
+    ) -> Result<(), RingError> {
+        let admin = match self
+            .authenticate(Credentials {
+                username: logged_in_user.username.clone(),
+                password: current_password_plaintext,
+                next: None,
+            })
+            .await?
+        {
+            Some(admin) => admin,
+            None => {
+                return Err(RingError::UnauthorisedAdmin);
+            }
+        };
+        let new_password_hashed = hash_password(new_password_plaintext).await?;
+        if let Err(e) = sqlx::query!(
+            "UPDATE admins SET password_phc = ? WHERE id = ?",
+            new_password_hashed,
+            admin.id
+        )
+        .execute(&self.database)
+        .await
+        {
+            error!("Error when trying to update admin password: {e}");
+            return Err(RingError::UnrecoverableDatabaseError(e));
+        };
+        Ok(())
+    }
+}
+
 pub type AuthSession = axum_login::AuthSession<RingState>;
