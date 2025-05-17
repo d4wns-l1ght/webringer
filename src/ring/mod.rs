@@ -170,7 +170,49 @@ impl RingState {
     }
 
     #[instrument]
-    pub async fn deny_site(&self, root_url: &str, admin_id: i64);
+    pub async fn deny_site(
+        &self,
+        root_url: &str,
+        reason: &str,
+        admin_id: i64,
+    ) -> Result<(), RingError> {
+        let mut tx = match self.database.begin().await {
+            Ok(tx) => tx,
+            Err(e) => return Err(RingError::UnrecoverableDatabaseError(e)),
+        };
+
+        let denial_id = match sqlx::query!(
+            "INSERT INTO denial_records (date_added, admin_id, reason) VALUES (date('now'), ?, ?)",
+            admin_id,
+            reason
+        )
+        .execute(&mut *tx)
+        .await
+        {
+            Ok(query_outcome) => query_outcome.last_insert_rowid(),
+            Err(e) => {
+                error!("There was an error when adding a denial record");
+                return Err(RingError::UnrecoverableDatabaseError(e));
+            }
+        };
+
+        if let Err(e) = sqlx::query!(
+            "UPDATE sites SET denial_id = ? WHERE root_url = ?",
+            denial_id,
+            root_url
+        )
+        .execute(&mut *tx)
+        .await
+        {
+            return Err(RingError::UnrecoverableDatabaseError(e));
+        };
+
+        if let Err(e) = tx.commit().await {
+            return Err(RingError::UnrecoverableDatabaseError(e));
+        }
+
+        Ok(())
+    }
 
     /// Gets the webring site after the current one
     /// Returns [RingError::SiteNotVerified] if the current site is not part of the webring
