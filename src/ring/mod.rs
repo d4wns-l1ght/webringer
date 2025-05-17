@@ -10,15 +10,15 @@ use tracing::{debug, error, info, instrument};
 pub mod auth;
 
 #[derive(Clone, Serialize, Deserialize, FromRow)]
-pub struct VerifiedSite {
+pub struct ApprovedSite {
     pub id: i64,
     pub root_url: String,
     pub email: String,
-    pub verification_id: i64,
+    pub approval_id: i64,
 }
 
 #[derive(Clone, Serialize, Deserialize, FromRow)]
-pub struct UnverifiedSite {
+pub struct UnapprovedSite {
     pub id: i64,
     pub root_url: String,
     pub email: String,
@@ -35,8 +35,8 @@ pub enum RingError {
     RowNotFound(String),
     #[error("The row {0} is already present in the database")]
     UniqueRowAlreadyPresent(String),
-    #[error("The site {0} is not verified")]
-    SiteNotVerified(String),
+    #[error("The site {0} is not approved")]
+    SiteNotApproved(String),
     #[error(transparent)]
     UnrecoverableDatabaseError(#[from] sqlx::Error),
     #[error(transparent)]
@@ -72,7 +72,7 @@ impl RingState {
         .await
         {
             Ok(_query_outcome) => {
-                info!("Unverified site {} added to database", root_url);
+                info!("Unapproved site {} added to database", root_url);
                 Ok(())
             }
             Err(sqlx::Error::Database(ref e)) if e.code().as_deref() == Some("2067") => {
@@ -215,12 +215,12 @@ impl RingState {
     }
 
     /// Gets the webring site after the current one
-    /// Returns [RingError::SiteNotVerified] if the current site is not part of the webring
+    /// Returns [RingError::SiteNotApproved] if the current site is not part of the webring
     /// Returns [RingError::RowNotFound] if the current site is last in the webring
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn get_next(&self, current_url: &str) -> Result<String, RingError> {
-        let id = self.get_verified_id(current_url).await?;
+        let id = self.get_approved_site_id(current_url).await?;
         debug!(
             "Running query SELECT root_url FROM verified_sites WHERE site_id > {id} ORDER BY site_id ASC LIMIT 1"
         );
@@ -238,12 +238,12 @@ impl RingState {
     }
 
     /// Gets the webring site before the current one
-    /// Returns [RingError::SiteNotVerified] if the current site is not part of the webring
+    /// Returns [RingError::SiteNotApproved] if the current site is not part of the webring
     /// Returns [RingError::RowNotFound] if the current site is last in the webring
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn get_prev(&self, current_url: &str) -> Result<String, RingError> {
-        let id = self.get_verified_id(current_url).await?;
+        let id = self.get_approved_site_id(current_url).await?;
         debug!(
             "Running query SELECT root_url FROM verified_sites WHERE site_id < {id} ORDER BY site_id ASC LIMIT 1"
         );
@@ -264,7 +264,7 @@ impl RingState {
     }
 
     #[instrument]
-    async fn get_verified_id(&self, root_url: &str) -> Result<i64, RingError> {
+    async fn get_approved_site_id(&self, root_url: &str) -> Result<i64, RingError> {
         debug!("Running query SELECT site_id FROM verified_sites WHERE root_url={root_url}");
         match sqlx::query!(
             "SELECT site_id FROM approved_sites WHERE root_url=?",
@@ -275,10 +275,10 @@ impl RingState {
         {
             Ok(record) => Ok(record
                 .site_id
-                .ok_or(RingError::SiteNotVerified(root_url.to_owned()))?),
+                .ok_or(RingError::SiteNotApproved(root_url.to_owned()))?),
             Err(sqlx::Error::RowNotFound) => {
-                info!("The unverified site {root_url} tried to be a part of the webring");
-                return Err(RingError::SiteNotVerified(root_url.to_owned()));
+                info!("The unapproved site {root_url} tried to be a part of the webring");
+                return Err(RingError::SiteNotApproved(root_url.to_owned()));
             }
             Err(e) => {
                 error!(
@@ -291,7 +291,7 @@ impl RingState {
     }
 
     /// Gets a random site from the webring
-    /// Returns [RingError::RowNotFound] if there are no verified sites
+    /// Returns [RingError::RowNotFound] if there are no approved sites
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn get_random_site(&self) -> Result<String, RingError> {
@@ -314,11 +314,11 @@ impl RingState {
         }
     }
 
-    /// Gets a list of all verified webring sites
+    /// Gets a list of all approved webring sites
     /// Returns [RingError::RowNotFound] if there are no verified sites
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
-    pub async fn get_list_verified(&self) -> Result<Vec<VerifiedSite>, RingError> {
+    pub async fn get_list_approved(&self) -> Result<Vec<ApprovedSite>, RingError> {
         debug!("Running query SELECT * FROM verified_sites ORDER BY random()");
         match sqlx::query_as("SELECT * FROM verified_sites ORDER BY random()")
             .fetch_all(&self.database)
@@ -338,11 +338,11 @@ impl RingState {
         }
     }
 
-    /// Gets a list of all unverified webring sites
+    /// Gets a list of all unapproved webring sites
     #[instrument]
-    pub async fn get_list_unverified(&self) -> Result<Vec<UnverifiedSite>, RingError> {
+    pub async fn get_list_unapproved(&self) -> Result<Vec<UnapprovedSite>, RingError> {
         debug!("SELECT * FROM unverified_sites ORDER BY id");
-        match sqlx::query_as("SELECT * FROM unverified_sites ORDER BY id")
+        match sqlx::query_as("SELECT * FROM unapproved_sites ORDER BY id")
             .fetch_all(&self.database)
             .await
         {
@@ -352,7 +352,7 @@ impl RingState {
             )),
             Err(e) => {
                 error!(
-                    "There was an unrecoverable database error in get_list_unverified: {}",
+                    "There was an unrecoverable database error in get_list_unapproved: {}",
                     e
                 );
                 Err(RingError::UnrecoverableDatabaseError(e))

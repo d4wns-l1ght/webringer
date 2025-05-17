@@ -10,7 +10,7 @@ use axum_login::login_required;
 use axum_messages::{Message, Messages};
 use tracing::{debug, error, warn};
 
-use crate::ring::{RingError, RingState, UnverifiedSite, auth::AuthSession};
+use crate::ring::{RingError, RingState, UnapprovedSite, auth::AuthSession};
 
 mod account;
 mod add;
@@ -51,14 +51,14 @@ async fn landing_page() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "admin/sites_view.html")]
 pub struct AdminViewSitesTemplate {
-    unverified_sites: Vec<UnverifiedSite>,
+    unapproved_sites: Vec<UnapprovedSite>,
     messages: Vec<Message>,
 }
 
 async fn view(messages: Messages, State(state): State<RingState>) -> impl IntoResponse {
     match (AdminViewSitesTemplate {
-        unverified_sites: {
-            match state.get_list_unverified().await {
+        unapproved_sites: {
+            match state.get_list_unapproved().await {
                 Ok(sites) => sites,
                 Err(RingError::RowNotFound(_query)) => vec![],
                 Err(e) => {

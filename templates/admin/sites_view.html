@@ -20,7 +20,7 @@
 			<th>Email</th>
 			<th>Approve/Deny</th>
 		</tr>
-		{% for site in unverified_sites %}
+		{% for site in unapproved_sites %}
 		<tr>
 			<td><a href="{{ site.root_url }}">{{ site.root_url }}</a></td>
 			<td><a href="mailto:{{ site.email }}">{{ site.email }}</a></td>

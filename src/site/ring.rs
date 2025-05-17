@@ -40,7 +40,7 @@ async fn next_prev_redirect(
             debug!("Redirecting user to {url}");
             Redirect::to(&url).into_response()
         }
-        Err(RingError::SiteNotVerified(url)) => {
+        Err(RingError::SiteNotApproved(url)) => {
             debug!("Site {} unauthorized", url);
             http::StatusCode::UNAUTHORIZED.into_response()
         }
@@ -69,8 +69,8 @@ pub async fn random(State(state): State<RingState>) -> impl IntoResponse {
             Redirect::to(&url).into_response()
         }
         Err(RingError::RowNotFound(_query)) => {
-            warn!("There are currently no verified sites in the webring");
-            Html("<h1>Error</h1><br><p>There are currently no verified sites in the webring :( Maybe you should add yours!").into_response()
+            warn!("There are currently no approved sites in the webring");
+            Html("<h1>Error</h1><br><p>There are currently no approved sites in the webring :( Maybe you should add yours!").into_response()
         }
         Err(e) => {
             warn!("{e}");
@@ -87,16 +87,16 @@ pub struct ListTemplate {
 
 #[instrument]
 pub async fn list(State(state): State<RingState>) -> impl IntoResponse {
-    match match state.get_list_verified().await {
+    match match state.get_list_approved().await {
         Ok(sites) => ListTemplate {
             sites: sites.into_iter().map(|site| site.root_url).collect(),
         },
         Err(RingError::RowNotFound(_query)) => {
-            warn!("There are currently no verified sites in the webring");
+            warn!("There are currently no approved sites in the webring");
             ListTemplate { sites: vec![] }
         }
         Err(e) => {
-            error!("Error when getting the list of verified sites: {e}");
+            error!("Error when getting the list of approved sites: {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     }
