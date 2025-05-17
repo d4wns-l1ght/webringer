@@ -139,7 +139,7 @@ impl RingState {
             "Running query SELECT root_url FROM verified_sites WHERE site_id > {id} ORDER BY site_id ASC LIMIT 1"
         );
         match sqlx::query!(
-            "SELECT root_url FROM verified_sites WHERE site_id > ? ORDER BY site_id ASC LIMIT 1",
+            "SELECT root_url FROM approved_sites WHERE site_id > ? ORDER BY site_id ASC LIMIT 1",
             id
         )
         .fetch_one(&self.database)
@@ -162,7 +162,7 @@ impl RingState {
             "Running query SELECT root_url FROM verified_sites WHERE site_id < {id} ORDER BY site_id ASC LIMIT 1"
         );
         match sqlx::query!(
-            "SELECT root_url FROM verified_sites WHERE site_id > ? ORDER BY site_id ASC LIMIT 1",
+            "SELECT root_url FROM approved_sites WHERE site_id > ? ORDER BY site_id ASC LIMIT 1",
             id
         )
         .fetch_one(&self.database)
@@ -181,7 +181,7 @@ impl RingState {
     async fn get_verified_id(&self, root_url: &str) -> Result<i64, RingError> {
         debug!("Running query SELECT site_id FROM verified_sites WHERE root_url={root_url}");
         match sqlx::query!(
-            "SELECT site_id FROM verified_sites WHERE root_url=?",
+            "SELECT site_id FROM approved_sites WHERE root_url=?",
             root_url
         )
         .fetch_one(&self.database)
@@ -210,7 +210,7 @@ impl RingState {
     #[instrument]
     pub async fn get_random_site(&self) -> Result<String, RingError> {
         debug!("Running query 'SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1");
-        match sqlx::query!("SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1")
+        match sqlx::query!("SELECT root_url FROM approved_sites ORDER BY random() LIMIT 1")
             .fetch_one(&self.database)
             .await
         {
