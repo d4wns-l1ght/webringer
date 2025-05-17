@@ -64,7 +64,7 @@ pub async fn post(
         Redirect::to(next)
     } else {
         debug!("Login successful, redirecting to /");
-        Redirect::to("/admin")
+        Redirect::to("/")
     }
 }
 

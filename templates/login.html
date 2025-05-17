@@ -11,9 +11,9 @@
 <body>
 	<h1>WebRinger</h1>
 	<a href="/"><img src="/static/logo.svg" width=256></a>
-    {% for message in messages %}
-    <p>{{ message }}</p>
-    {% endfor %}
+	{% for message in messages %}
+	<p>{{ message }}</p>
+	{% endfor %}
 
 
 	<p>Login here:</p>
@@ -25,11 +25,11 @@
 			Password
 			<input required type="password" name="password" id="password" placeholder="password"> </label>
 		<input type="submit" value="Login">
+		{% if let Some(next) = next %}
+		<input type="hidden" name="next" value="{{next}}" />
+		{% endif %}
 	</form>
 
-	{% if let Some(next) = next %}
-	<input type="hidden" name="next" value="{{next}}" />
-	{% endif %}
 </body>
 
 </html>
