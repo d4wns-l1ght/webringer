@@ -19,7 +19,8 @@
 		<tr>
 			<th>URL</th>
 			<th>Email</th>
-			<th>Approve/Deny</th>
+			<th>Approve</th>
+			<th>Deny</th>
 		</tr>
 		{% for site in unapproved_sites %}
 		<tr>
@@ -30,6 +31,8 @@
 					<input type="hidden" name="url" value="{{ site.root_url }}">
 					<input type="submit" value="Approve">
 				</form>
+			</td>
+			<td>
 				<form action="/admin/deny" method="post">
 					<input type="hidden" name="url" value="{{ site.root_url }}">
 					<label for="reason">Reason for denial:</label>
