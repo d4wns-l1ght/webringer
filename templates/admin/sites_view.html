@@ -25,9 +25,15 @@
 			<td><a href="{{ site.root_url }}">{{ site.root_url }}</a></td>
 			<td><a href="mailto:{{ site.email }}">{{ site.email }}</a></td>
 			<td>
-				<form action="/admin/approve?url={{ site.root_url }}" method="post"><button
-						type="submit">Approve</button></form>
-				<form action="/admin/deny?url={{ site.root_url }}" method="post"><button type="submit">Deny</button>
+				<form action="/admin/approve" method="post">
+					<input type="hidden" name="url" value="{{ site.root_url }}">
+					<input type="submit" value="Approve">
+				</form>
+				<form action="/admin/deny" method="post">
+					<input type="hidden" name="url" value="{{ site.root_url }}">
+					<label for="reason">Reason for denial:</label>
+					<input type="text" name="reason" id="reason">
+					<input type="submit" value="Deny">
 				</form>
 			</td>
 		</tr>

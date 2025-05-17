@@ -1,5 +1,6 @@
 use axum::{
-    extract::{Query, State},
+    Form,
+    extract::State,
     http::StatusCode,
     response::{IntoResponse, Redirect},
 };
@@ -11,7 +12,7 @@ use tracing::error;
 use crate::ring::{RingState, auth::AuthSession};
 
 #[derive(Debug, Deserialize)]
-pub struct ApproveSiteQuery {
+pub struct ApproveSiteForm {
     url: String,
 }
 
@@ -19,16 +20,16 @@ pub(super) async fn post(
     messages: Messages,
     auth_session: AuthSession,
     State(state): State<RingState>,
-    Query(query): Query<ApproveSiteQuery>,
+    Form(form): Form<ApproveSiteForm>,
 ) -> impl IntoResponse {
     let admin = match auth_session.user {
         Some(admin) => admin,
         None => return StatusCode::UNAUTHORIZED.into_response(),
     };
-    if let Err(e) = state.approve_site(&query.url, admin.id()).await {
+    if let Err(e) = state.approve_site(&form.url, admin.id()).await {
         error!("Error when trying to approve site: {e}");
         return StatusCode::INTERNAL_SERVER_ERROR.into_response();
     }
-    messages.info(format!("Site {} approved", query.url));
+    messages.info(format!("Site {} approved", form.url));
     Redirect::to("/admin/view").into_response()
 }
