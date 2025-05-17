@@ -72,10 +72,6 @@ impl RingState {
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn add_site(&self, root_url: &str, email: &str) -> Result<(), RingError> {
-        debug!(
-            "Running query 'INSERT INTO sites (root_url, email) values ({}, {})'",
-            root_url, email
-        );
         match sqlx::query!(
             "INSERT INTO sites (root_url, email) values (?, ?)",
             root_url,
@@ -112,10 +108,6 @@ impl RingState {
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn remove_site(&self, root_url: &str) -> Result<(), RingError> {
-        debug!(
-            "Running query 'DELETE FROM sites WHERE root_url = {}'",
-            root_url
-        );
         match sqlx::query!("DELETE FROM sites WHERE root_url = ?", root_url)
             .bind(root_url)
             .execute(&self.database)
@@ -236,9 +228,6 @@ impl RingState {
     #[instrument]
     pub async fn get_next(&self, current_url: &str) -> Result<String, RingError> {
         let id = self.get_approved_site_id(current_url).await?;
-        debug!(
-            "Running query SELECT root_url FROM verified_sites WHERE site_id > {id} ORDER BY site_id ASC LIMIT 1"
-        );
         match sqlx::query!(
             "SELECT root_url FROM approved_sites WHERE site_id > ? ORDER BY site_id ASC LIMIT 1",
             id
@@ -259,9 +248,6 @@ impl RingState {
     #[instrument]
     pub async fn get_prev(&self, current_url: &str) -> Result<String, RingError> {
         let id = self.get_approved_site_id(current_url).await?;
-        debug!(
-            "Running query SELECT root_url FROM verified_sites WHERE site_id < {id} ORDER BY site_id ASC LIMIT 1"
-        );
         match sqlx::query!(
             "SELECT root_url FROM approved_sites WHERE site_id > ? ORDER BY site_id ASC LIMIT 1",
             id
@@ -280,7 +266,6 @@ impl RingState {
 
     #[instrument]
     async fn get_approved_site_id(&self, root_url: &str) -> Result<i64, RingError> {
-        debug!("Running query SELECT site_id FROM verified_sites WHERE root_url={root_url}");
         match sqlx::query!(
             "SELECT site_id FROM approved_sites WHERE root_url=?",
             root_url
@@ -310,7 +295,6 @@ impl RingState {
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn get_random_site(&self) -> Result<String, RingError> {
-        debug!("Running query 'SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1");
         match sqlx::query!("SELECT root_url FROM approved_sites ORDER BY random() LIMIT 1")
             .fetch_one(&self.database)
             .await
@@ -334,7 +318,6 @@ impl RingState {
     /// Otherwise, [RingError::UnrecoverableDatabaseError]
     #[instrument]
     pub async fn get_list_approved(&self) -> Result<Vec<ApprovedSite>, RingError> {
-        debug!("Running query SELECT * FROM verified_sites ORDER BY random()");
         match sqlx::query_as("SELECT * FROM approved_sites ORDER BY random()")
             .fetch_all(&self.database)
             .await
@@ -355,7 +338,6 @@ impl RingState {
 
     #[instrument]
     pub async fn get_list_denied(&self) -> Result<Vec<DeniedSite>, RingError> {
-        debug!("Running query SELECT * FROM denied_sites");
         match sqlx::query_as("SELECT * FROM denied_sites")
             .fetch_all(&self.database)
             .await
@@ -377,7 +359,6 @@ impl RingState {
     /// Gets a list of all unapproved webring sites
     #[instrument]
     pub async fn get_list_unapproved(&self) -> Result<Vec<UnapprovedSite>, RingError> {
-        debug!("SELECT * FROM unverified_sites ORDER BY id");
         match sqlx::query_as("SELECT * FROM unapproved_sites ORDER BY id")
             .fetch_all(&self.database)
             .await
