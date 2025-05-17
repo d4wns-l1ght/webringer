@@ -11,6 +11,9 @@
 <body>
 	<h1>WebRinger - Approve/Deny sites</h1>
 	<a href="/"><img src="/static/logo.svg" width=256></a>
+	{% for message in messages %}
+	<p>{{ message }}</p>
+	{% endfor %}
 	<table>
 		<tr>
 			<th>URL</th>
@@ -22,9 +25,9 @@
 			<td><a href="{{ site.root_url }}">{{ site.root_url }}</a></td>
 			<td><a href="mailto:{{ site.email }}">{{ site.email }}</a></td>
 			<td>
-				<form action="/admin/approve?siteurl={{ site.root_url }}" method="post"><button
+				<form action="/admin/approve?url={{ site.root_url }}" method="post"><button
 						type="submit">Approve</button></form>
-				<form action="/admin/deny?siteurl={{ site.root_url }}" method="post"><button type="submit">Deny</button>
+				<form action="/admin/deny?url={{ site.root_url }}" method="post"><button type="submit">Deny</button>
 				</form>
 			</td>
 		</tr>

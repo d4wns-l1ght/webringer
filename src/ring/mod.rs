@@ -128,6 +128,50 @@ impl RingState {
         }
     }
 
+    #[instrument]
+    pub async fn approve_site(&self, root_url: &str, admin_id: i64) -> Result<(), RingError> {
+        let mut tx = match self.database.begin().await {
+            Ok(tx) => tx,
+            Err(e) => return Err(RingError::UnrecoverableDatabaseError(e)),
+        };
+
+        let approval_id = match sqlx::query!(
+            "INSERT INTO approval_records (date_added, admin_id) VALUES (date('now'), ?)",
+            admin_id
+        )
+        .execute(&mut *tx)
+        .await
+        {
+            Ok(query_outcome) => query_outcome.last_insert_rowid(),
+            Err(e) => {
+                error!("There was an error when adding an approval record");
+                return Err(RingError::UnrecoverableDatabaseError(e));
+            }
+        };
+
+        if let Err(e) = sqlx::query!(
+            "UPDATE sites SET approval_id = ? WHERE root_url = ?",
+            approval_id,
+            root_url
+        )
+        .execute(&mut *tx)
+        .await
+        {
+            // TODO: Distinguish for the type of error you get when there is a constraint error
+            // (e.g. there is already a denial_id set or vice versa)
+            return Err(RingError::UnrecoverableDatabaseError(e));
+        };
+
+        if let Err(e) = tx.commit().await {
+            return Err(RingError::UnrecoverableDatabaseError(e));
+        }
+
+        Ok(())
+    }
+
+    #[instrument]
+    pub async fn deny_site(&self, root_url: &str, admin_id: i64);
+
     /// Gets the webring site after the current one
     /// Returns [RingError::SiteNotVerified] if the current site is not part of the webring
     /// Returns [RingError::RowNotFound] if the current site is last in the webring

@@ -7,21 +7,22 @@ use axum::{
     routing::{get, post},
 };
 use axum_login::login_required;
+use axum_messages::{Message, Messages};
 use tracing::{debug, error, warn};
 
 use crate::ring::{RingError, RingState, UnverifiedSite, auth::AuthSession};
 
 mod account;
 mod add;
+mod approve;
 mod deny;
-mod verify;
 
 pub fn router(state: RingState) -> Router {
     Router::new()
         .route("/", get(landing_page))
         .route("/view", get(view))
         .route("/deny", post(deny::post))
-        .route("/approve", post(verify::post))
+        .route("/approve", post(approve::post))
         .route("/add", get(add::get))
         .route("/add", post(add::post))
         .route("/logout", post(logout))
@@ -51,9 +52,10 @@ async fn landing_page() -> impl IntoResponse {
 #[template(path = "admin/sites_view.html")]
 pub struct AdminViewSitesTemplate {
     unverified_sites: Vec<UnverifiedSite>,
+    messages: Vec<Message>,
 }
 
-async fn view(State(state): State<RingState>) -> impl IntoResponse {
+async fn view(messages: Messages, State(state): State<RingState>) -> impl IntoResponse {
     match (AdminViewSitesTemplate {
         unverified_sites: {
             match state.get_list_unverified().await {
@@ -65,6 +67,7 @@ async fn view(State(state): State<RingState>) -> impl IntoResponse {
                 }
             }
         },
+        messages: messages.into_iter().collect(),
     })
     .render()
     {
