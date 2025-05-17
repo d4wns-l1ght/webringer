@@ -10,7 +10,9 @@ use axum_login::login_required;
 use axum_messages::{Message, Messages};
 use tracing::{debug, error, warn};
 
-use crate::ring::{RingError, RingState, UnapprovedSite, auth::AuthSession};
+use crate::ring::{
+    ApprovedSite, DeniedSite, RingError, RingState, UnapprovedSite, auth::AuthSession,
+};
 
 mod account;
 mod add;
@@ -51,12 +53,15 @@ async fn landing_page() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "admin/sites_view.html")]
 pub struct AdminViewSitesTemplate {
-    unapproved_sites: Vec<UnapprovedSite>,
     messages: Vec<Message>,
+    unapproved_sites: Vec<UnapprovedSite>,
+    approved_sites: Vec<ApprovedSite>,
+    denied_sites: Vec<DeniedSite>,
 }
 
 async fn view(messages: Messages, State(state): State<RingState>) -> impl IntoResponse {
     match (AdminViewSitesTemplate {
+        messages: messages.into_iter().collect(),
         unapproved_sites: {
             match state.get_list_unapproved().await {
                 Ok(sites) => sites,
@@ -67,7 +72,26 @@ async fn view(messages: Messages, State(state): State<RingState>) -> impl IntoRe
                 }
             }
         },
-        messages: messages.into_iter().collect(),
+        approved_sites: {
+            match state.get_list_approved().await {
+                Ok(sites) => sites,
+                Err(RingError::RowNotFound(_query)) => vec![],
+                Err(e) => {
+                    error!("Error when getting the admin view of sites: {e}");
+                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                }
+            }
+        },
+        denied_sites: {
+            match state.get_list_denied().await {
+                Ok(sites) => sites,
+                Err(RingError::RowNotFound(_query)) => vec![],
+                Err(e) => {
+                    error!("Error when getting the admin view of sites: {e}");
+                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                }
+            }
+        }
     })
     .render()
     {

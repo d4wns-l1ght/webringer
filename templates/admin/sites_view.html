@@ -14,6 +14,7 @@
 	{% for message in messages %}
 	<p>{{ message }}</p>
 	{% endfor %}
+	<h2>Unapproved Sites</h2>
 	<table>
 		<tr>
 			<th>URL</th>
@@ -36,6 +37,46 @@
 					<input type="submit" value="Deny">
 				</form>
 			</td>
+		</tr>
+		{% endfor %}
+	</table>
+	<h2>Approved Sites</h2>
+	<table>
+		<tr>
+			<th>URL</th>
+			<th>Email</th>
+			<th>Date added</th>
+			<th>By: Admin username</th>
+			<th>By: Admin email</th>
+		</tr>
+		{% for site in approved_sites %}
+		<tr>
+			<td><a href="{{ site.root_url }}">{{ site.root_url }}</a></td>
+			<td><a href="mailto:{{ site.site_email }}">{{ site.site_email }}</a></td>
+			<td>{{ site.date_added }}</td>
+			<td>{{ site.admin_username }}</td>
+			<td><a href="mailto:{{ site.admin_email }}">{{ site.admin_email }}</a></td>
+		</tr>
+		{% endfor %}
+	</table>
+	<h2>Denied Sites</h2>
+	<table>
+		<tr>
+			<th>URL</th>
+			<th>Email</th>
+			<th>Date added</th>
+			<th>Reason for denial</th>
+			<th>By: Admin username</th>
+			<th>By: Admin email</th>
+		</tr>
+		{% for site in denied_sites %}
+		<tr>
+			<td><a href="{{ site.root_url }}">{{ site.root_url }}</a></td>
+			<td><a href="mailto:{{ site.site_email }}">{{ site.site_email }}</a></td>
+			<td>{{ site.date_added }}</td>
+			<td>{{ site.reason }}</td>
+			<td>{{ site.admin_username }}</td>
+			<td><a href="mailto:{{ site.admin_email }}">{{ site.admin_email }}</a></td>
 		</tr>
 		{% endfor %}
 	</table>

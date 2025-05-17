@@ -11,10 +11,13 @@ pub mod auth;
 
 #[derive(Clone, Serialize, Deserialize, FromRow)]
 pub struct ApprovedSite {
-    pub id: i64,
+    pub site_id: i64,
     pub root_url: String,
-    pub email: String,
-    pub approval_id: i64,
+    pub site_email: String,
+    pub date_added: String,
+    pub admin_id: i64,
+    pub admin_username: String,
+    pub admin_email: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, FromRow)]
@@ -22,6 +25,18 @@ pub struct UnapprovedSite {
     pub id: i64,
     pub root_url: String,
     pub email: String,
+}
+
+#[derive(Clone, Serialize, Deserialize, FromRow)]
+pub struct DeniedSite {
+    pub site_id: i64,
+    pub root_url: String,
+    pub site_email: String,
+    pub date_added: String,
+    pub reason: String,
+    pub admin_id: i64,
+    pub admin_username: String,
+    pub admin_email: String,
 }
 
 #[derive(Debug, Clone)]
@@ -320,7 +335,7 @@ impl RingState {
     #[instrument]
     pub async fn get_list_approved(&self) -> Result<Vec<ApprovedSite>, RingError> {
         debug!("Running query SELECT * FROM verified_sites ORDER BY random()");
-        match sqlx::query_as("SELECT * FROM verified_sites ORDER BY random()")
+        match sqlx::query_as("SELECT * FROM approved_sites ORDER BY random()")
             .fetch_all(&self.database)
             .await
         {
@@ -330,7 +345,28 @@ impl RingState {
             )),
             Err(e) => {
                 error!(
-                    "There was an unrecoverable database error in get_list_verified: {}",
+                    "There was an unrecoverable database error in get_list_approved: {}",
+                    e
+                );
+                Err(RingError::UnrecoverableDatabaseError(e))
+            }
+        }
+    }
+
+    #[instrument]
+    pub async fn get_list_denied(&self) -> Result<Vec<DeniedSite>, RingError> {
+        debug!("Running query SELECT * FROM denied_sites");
+        match sqlx::query_as("SELECT * FROM denied_sites")
+            .fetch_all(&self.database)
+            .await
+        {
+            Ok(sites) => Ok(sites),
+            Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
+                "SELECT root_url FROM denied_sites".to_owned(),
+            )),
+            Err(e) => {
+                error!(
+                    "There was an unrecoverable database error in get_list_denied: {}",
                     e
                 );
                 Err(RingError::UnrecoverableDatabaseError(e))
