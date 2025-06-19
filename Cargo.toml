@@ -10,3 +10,6 @@ sqlx = { version = "0.8.3", features = ["sqlite", "runtime-tokio"] }
 tokio = "1.44.2"
 tower-http = { version = "0.6.2", features = ["fs"] }
 dotenvy = "0.15.7"
+serde = { version = "1.0.219", features = ["derive"] }
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"

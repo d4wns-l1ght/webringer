@@ -1,44 +1,42 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<title>WebRinger</title>
-		<link href="css/style.css" rel="stylesheet" />
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-	</head>
-	<body>
-		<h1>WebRinger</h1>
-		<img src="logo.svg" width=256>
-		<p><a href="list">Check the webring site list!</a></p>
-		<p>Interested in joining? Fill this form:</p>
-		<form method="post" action="join">
-			<label>
-				Your site's root URL
-				<input
-						required
-						type="url"
-						name="url"
-						id="url"
-						placeholder="https://my.coolwebsite.example/"
-						pattern="https?://.*"
-						>
-			</label>
-				<input type="submit" value="Continue to sign up">
-		</form>
-		<p>Want to remove your site from the webring? There's a form for that too!</p>
-		<form method="post" action="leave">
-			<label>
-				Your site's root URL
-				<input
-						required
-						type="url"
-						name="url"
-						id="url"
-						placeholder="https://my.coolwebsite.example/"
-						pattern="https?://.*"
-						>
-			</label>
-				<input type="submit" value="Continue to deletion">
-		</form>
-	</body>
+
+<head>
+	<title>WebRinger</title>
+	<link href="css/style.css" rel="stylesheet" />
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width" />
+</head>
+
+<body>
+	<h1>WebRinger</h1>
+	<img src="logo.svg" width=256>
+	<p><a href="list">Check the webring site list!</a></p>
+	<p>Interested in joining? Fill this form:</p>
+	<form method="post" action="join">
+		<label>
+			Your site's root URL
+			<input required type="url" name="url" id="url" placeholder="https://my.coolwebsite.example/"
+				pattern="https?://.*">
+		</label>
+		<label>
+			Your email (so we can contact you)
+			<!--Not really any point trying to match email, just verify somehow, probably manually.-->
+			<!--It'd be nice to be able to use that email thing the ecs server uses for myvuw email at least though-->
+			<input required type="email" name="email" id="email" placeholder="ringerweb@myvuw.ac.nz"
+				pattern=".*@.*\..*">
+		</label>
+		<input type="submit" value="Continue to sign up">
+	</form>
+	<p>Want to remove your site from the webring? There's a form for that too!</p>
+	<form method="post" action="leave">
+		<label>
+			Your site's root URL
+			<input required type="url" name="url" id="url" placeholder="https://my.coolwebsite.example/"
+				pattern="https?://.*">
+		</label>
+		<input type="submit" value="Continue to deletion">
+	</form>
+</body>
+
 </html>
