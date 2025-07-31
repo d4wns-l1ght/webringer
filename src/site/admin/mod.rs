@@ -91,7 +91,7 @@ async fn view(messages: Messages, State(state): State<RingState>) -> impl IntoRe
                     return StatusCode::INTERNAL_SERVER_ERROR.into_response();
                 }
             }
-        }
+        },
     })
     .render()
     {

@@ -405,8 +405,7 @@ impl RingState {
                     username, email
                 );
                 Err(RingError::UniqueRowAlreadyPresent(format!(
-                    "{} {}",
-                    username, email
+                    "{username} {email}"
                 )))
             }
             Err(e) => {
@@ -428,8 +427,7 @@ impl RingState {
             Ok(query) if query.rows_affected() == 0 => {
                 error!("No admin found to delete. {:?}", query);
                 Err(RingError::RowNotFound(format!(
-                    "Admin with admin id {:?}",
-                    admin_id
+                    "Admin with admin id {admin_id:?}"
                 )))
             }
             Ok(query) => {

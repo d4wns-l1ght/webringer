@@ -40,14 +40,14 @@ pub async fn post(
             messages.error("Invalid credentials");
             let mut login_url = "/login".to_owned();
             if let Some(next) = creds.next {
-                login_url = format!("{}?next={}", login_url, next)
+                login_url = format!("{login_url}?next={next}")
             };
 
             return Redirect::to(&login_url);
         }
         Err(e) => {
             // TODO: Maybe make this return a statuscode instead?
-            messages.error(format!("Error when authenticating admin: {}", e));
+            messages.error(format!("Error when authenticating admin: {e}"));
             error!("Error when authenticating admin: {}", e);
             return Redirect::to(".");
         }

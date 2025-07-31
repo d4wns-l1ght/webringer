@@ -113,7 +113,7 @@ pub async fn post(
                 .into_response()
         }
         Err(RingError::UniqueRowAlreadyPresent(site)) => {
-            messages.error(format!("The site {} has already been registered", site));
+            messages.error(format!("The site {site} has already been registered"));
             redirect_here
         }
         Err(RingError::UnrecoverableDatabaseError(e)) => {
