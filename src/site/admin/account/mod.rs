@@ -112,6 +112,8 @@ async fn delete_account(
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
         Err(e) => {
+            // TODO: This could be a FK constraint, e.g. the admin has approved/denied sites and
+            // therefore cannot be deleted - there should be a way to indicate this
             error!("There was an error when trying to delete an admin: {e}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }

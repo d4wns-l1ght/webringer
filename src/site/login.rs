@@ -58,7 +58,6 @@ pub async fn post(
         return Redirect::to(".");
     }
 
-    // FIXME: This isn't working
     if let Some(ref next) = creds.next {
         debug!("Login successful, redirecting to {}", &next);
         Redirect::to(next)
