@@ -7,7 +7,7 @@ use axum::{
 };
 use axum_messages::{Message, Messages};
 use serde::Deserialize;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 use crate::ring::auth::{AuthSession, Credentials};
 
@@ -32,7 +32,7 @@ pub async fn post(
 ) -> impl IntoResponse {
     let admin = match auth_session.authenticate(creds.clone()).await {
         Ok(Some(admin)) => {
-            debug!("Authenticated admin {:?}", &admin);
+            info!("Authenticated admin {:?}", &admin);
             admin
         }
         Ok(None) => {

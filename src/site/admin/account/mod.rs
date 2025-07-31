@@ -8,7 +8,7 @@ use axum::{
 };
 use axum_login::AuthUser;
 use serde::Deserialize;
-use tracing::{debug, error, warn};
+use tracing::{debug, error, info, warn};
 
 use crate::ring::{
     RingError, RingState,
@@ -84,7 +84,7 @@ async fn delete_account(
     }
     let admin = match auth_session.logout().await {
         Ok(Some(admin)) => {
-            debug!(
+            info!(
                 "Successfully logged out admin as part of account deletion {:?}",
                 admin
             );
@@ -100,7 +100,10 @@ async fn delete_account(
         }
     };
     match state.delete_admin(admin.id()).await {
-        Ok(()) => ([("content-type", "0")], Redirect::to("/")).into_response(),
+        Ok(()) => {
+            info!("Deleted admin {:?}", admin);
+            ([("content-type", "0")], Redirect::to("/")).into_response()
+        }
         Err(RingError::RowNotFound(_message)) => {
             error!(
                 "Tried to delete an admin that was not present in the database: {:?}",

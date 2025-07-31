@@ -8,7 +8,7 @@ use axum::{
 };
 use axum_login::login_required;
 use axum_messages::{Message, Messages};
-use tracing::{debug, error, warn};
+use tracing::{debug, error, info, warn};
 
 use crate::ring::{
     ApprovedSite, DeniedSite, RingError, RingState, UnapprovedSite, auth::AuthSession,
@@ -108,7 +108,7 @@ async fn view(messages: Messages, State(state): State<RingState>) -> impl IntoRe
 
 async fn logout(mut auth_session: AuthSession) -> impl IntoResponse {
     match auth_session.logout().await {
-        Ok(Some(admin)) => debug!("Successfully logged out admin {:?}", admin),
+        Ok(Some(admin)) => info!("Admin {:?} logged out", admin),
         Ok(None) => warn!("Tried to logout but there was no active user"),
         Err(e) => error!("Error when logging out admin: {}", e),
     };
