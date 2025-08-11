@@ -31,9 +31,6 @@ pub(super) async fn post(
 		error!("Error when trying to deny site: {e}");
 		return StatusCode::INTERNAL_SERVER_ERROR.into_response();
 	}
-	messages.info(format!(
-		"Site {} denied with reason {}",
-		form.url, form.reason
-	));
+	messages.info(format!("Site {} denied with reason {}", form.url, form.reason));
 	Redirect::to("/admin/view").into_response()
 }

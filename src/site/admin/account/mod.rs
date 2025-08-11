@@ -76,18 +76,12 @@ async fn delete_account(
 	Query(params): Query<DeleteParams>,
 ) -> impl IntoResponse {
 	if params.delete_confirmed != Some("true".to_owned()) {
-		return (
-			[("content-length", "0")],
-			Redirect::to("/admin/account?delete_pressed=true"),
-		)
+		return ([("content-length", "0")], Redirect::to("/admin/account?delete_pressed=true"))
 			.into_response();
 	}
 	let admin = match auth_session.logout().await {
 		Ok(Some(admin)) => {
-			info!(
-				"Successfully logged out admin as part of account deletion {:?}",
-				admin
-			);
+			info!("Successfully logged out admin as part of account deletion {:?}", admin);
 			admin
 		}
 		Ok(None) => {
@@ -105,10 +99,7 @@ async fn delete_account(
 			([("content-type", "0")], Redirect::to("/")).into_response()
 		}
 		Err(RingError::RowNotFound(_message)) => {
-			error!(
-				"Tried to delete an admin that was not present in the database: {:?}",
-				admin
-			);
+			error!("Tried to delete an admin that was not present in the database: {:?}", admin);
 			StatusCode::INTERNAL_SERVER_ERROR.into_response()
 		}
 		Err(e) => {

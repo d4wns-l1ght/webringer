@@ -17,13 +17,7 @@ pub struct ChangePasswordTemplate {
 }
 
 pub(super) async fn get(messages: Messages) -> impl IntoResponse {
-	match {
-		ChangePasswordTemplate {
-			messages: messages.into_iter().collect(),
-		}
-	}
-	.render()
-	{
+	match { ChangePasswordTemplate { messages: messages.into_iter().collect() } }.render() {
 		Ok(s) => {
 			debug!("Successfully rendered change password html");
 			Html(s).into_response()

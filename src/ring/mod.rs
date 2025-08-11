@@ -72,15 +72,11 @@ impl RingState {
 	/// Otherwise, [RingError::UnrecoverableDatabaseError]
 	#[instrument]
 	pub async fn add_site(&self, root_url: &str, email: &str) -> Result<(), RingError> {
-		match sqlx::query!(
-			"INSERT INTO sites (root_url, email) values (?, ?)",
-			root_url,
-			email
-		)
-		.bind(root_url)
-		.bind(email)
-		.execute(&self.database)
-		.await
+		match sqlx::query!("INSERT INTO sites (root_url, email) values (?, ?)", root_url, email)
+			.bind(root_url)
+			.bind(email)
+			.execute(&self.database)
+			.await
 		{
 			Ok(_query_outcome) => {
 				info!("Unapproved site {} added to database", root_url);
@@ -94,10 +90,7 @@ impl RingState {
 				Err(RingError::UniqueRowAlreadyPresent(root_url.to_owned()))
 			}
 			Err(e) => {
-				error!(
-					"There was an unrecoverable database error in add_site: {}",
-					e
-				);
+				error!("There was an unrecoverable database error in add_site: {}", e);
 				Err(RingError::UnrecoverableDatabaseError(e))
 			}
 		}
@@ -126,10 +119,7 @@ impl RingState {
 				}
 			}
 			Err(e) => {
-				error!(
-					"There was an unrecoverable database error in remove_site: {}",
-					e
-				);
+				error!("There was an unrecoverable database error in remove_site: {}", e);
 				Err(RingError::UnrecoverableDatabaseError(e))
 			}
 		}
@@ -203,13 +193,10 @@ impl RingState {
 			}
 		};
 
-		if let Err(e) = sqlx::query!(
-			"UPDATE sites SET denial_id = ? WHERE root_url = ?",
-			denial_id,
-			root_url
-		)
-		.execute(&mut *tx)
-		.await
+		if let Err(e) =
+			sqlx::query!("UPDATE sites SET denial_id = ? WHERE root_url = ?", denial_id, root_url)
+				.execute(&mut *tx)
+				.await
 		{
 			return Err(RingError::UnrecoverableDatabaseError(e));
 		};
@@ -266,25 +253,19 @@ impl RingState {
 
 	#[instrument]
 	async fn get_approved_site_id(&self, root_url: &str) -> Result<i64, RingError> {
-		match sqlx::query!(
-			"SELECT site_id FROM approved_sites WHERE root_url=?",
-			root_url
-		)
-		.fetch_one(&self.database)
-		.await
+		match sqlx::query!("SELECT site_id FROM approved_sites WHERE root_url=?", root_url)
+			.fetch_one(&self.database)
+			.await
 		{
-			Ok(record) => Ok(record
-				.site_id
-				.ok_or(RingError::SiteNotApproved(root_url.to_owned()))?),
+			Ok(record) => {
+				Ok(record.site_id.ok_or(RingError::SiteNotApproved(root_url.to_owned()))?)
+			}
 			Err(sqlx::Error::RowNotFound) => {
 				info!("The unapproved site {root_url} tried to be a part of the webring");
 				return Err(RingError::SiteNotApproved(root_url.to_owned()));
 			}
 			Err(e) => {
-				error!(
-					"There was an unrecoverable database error in get_verified_id: {}",
-					e
-				);
+				error!("There was an unrecoverable database error in get_verified_id: {}", e);
 				Err(RingError::UnrecoverableDatabaseError(e))
 			}
 		}
@@ -304,10 +285,7 @@ impl RingState {
 				"SELECT root_url FROM verified_sites ORDER BY random() LIMIT 1".to_owned(),
 			)),
 			Err(e) => {
-				error!(
-					"There was an unrecoverable database error in get_random_site: {}",
-					e
-				);
+				error!("There was an unrecoverable database error in get_random_site: {}", e);
 				Err(RingError::UnrecoverableDatabaseError(e))
 			}
 		}
@@ -327,10 +305,7 @@ impl RingState {
 				"SELECT root_url FROM verified_sites ORDER BY random()".to_owned(),
 			)),
 			Err(e) => {
-				error!(
-					"There was an unrecoverable database error in get_list_approved: {}",
-					e
-				);
+				error!("There was an unrecoverable database error in get_list_approved: {}", e);
 				Err(RingError::UnrecoverableDatabaseError(e))
 			}
 		}
@@ -338,19 +313,13 @@ impl RingState {
 
 	#[instrument]
 	pub async fn get_list_denied(&self) -> Result<Vec<DeniedSite>, RingError> {
-		match sqlx::query_as("SELECT * FROM denied_sites")
-			.fetch_all(&self.database)
-			.await
-		{
+		match sqlx::query_as("SELECT * FROM denied_sites").fetch_all(&self.database).await {
 			Ok(sites) => Ok(sites),
-			Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
-				"SELECT root_url FROM denied_sites".to_owned(),
-			)),
+			Err(sqlx::Error::RowNotFound) => {
+				Err(RingError::RowNotFound("SELECT root_url FROM denied_sites".to_owned()))
+			}
 			Err(e) => {
-				error!(
-					"There was an unrecoverable database error in get_list_denied: {}",
-					e
-				);
+				error!("There was an unrecoverable database error in get_list_denied: {}", e);
 				Err(RingError::UnrecoverableDatabaseError(e))
 			}
 		}
@@ -364,14 +333,11 @@ impl RingState {
 			.await
 		{
 			Ok(sites) => Ok(sites),
-			Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
-				"SELECT * FROM unverified_sites ORDER BY id".to_owned(),
-			)),
+			Err(sqlx::Error::RowNotFound) => {
+				Err(RingError::RowNotFound("SELECT * FROM unverified_sites ORDER BY id".to_owned()))
+			}
 			Err(e) => {
-				error!(
-					"There was an unrecoverable database error in get_list_unapproved: {}",
-					e
-				);
+				error!("There was an unrecoverable database error in get_list_unapproved: {}", e);
 				Err(RingError::UnrecoverableDatabaseError(e))
 			}
 		}
@@ -400,19 +366,11 @@ impl RingState {
 				Ok(())
 			}
 			Err(sqlx::Error::Database(ref e)) if e.code().as_deref() == Some("2067") => {
-				info!(
-					"Admin username {} or email {} already taken",
-					username, email
-				);
-				Err(RingError::UniqueRowAlreadyPresent(format!(
-					"{username} {email}"
-				)))
+				info!("Admin username {} or email {} already taken", username, email);
+				Err(RingError::UniqueRowAlreadyPresent(format!("{username} {email}")))
 			}
 			Err(e) => {
-				error!(
-					"There was an unrecoverable database error in add_admin: {}",
-					e
-				);
+				error!("There was an unrecoverable database error in add_admin: {}", e);
 				Err(RingError::UnrecoverableDatabaseError(e))
 			}
 		}
@@ -426,15 +384,10 @@ impl RingState {
 		{
 			Ok(query) if query.rows_affected() == 0 => {
 				error!("No admin found to delete. {:?}", query);
-				Err(RingError::RowNotFound(format!(
-					"Admin with admin id {admin_id:?}"
-				)))
+				Err(RingError::RowNotFound(format!("Admin with admin id {admin_id:?}")))
 			}
 			Ok(query) => {
-				info!(
-					"Successfully deleted admin account with id {:?}: {:?}",
-					admin_id, query
-				);
+				info!("Successfully deleted admin account with id {:?}: {:?}", admin_id, query);
 				Ok(())
 			}
 			Err(e) => {
