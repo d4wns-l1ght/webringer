@@ -48,7 +48,10 @@ pub(super) async fn post(
 		messages.error("Passwords do not match");
 		return Redirect::to(PATH).into_response();
 	}
-	if let Err(e) = state.add_admin(data.username.clone(), data.email, data.password).await {
+	if let Err(e) = state
+		.add_admin(data.username.clone(), data.email, data.password)
+		.await
+	{
 		match e {
 			RingError::UniqueRowAlreadyPresent(values) => {
 				messages.error(format!("Email or username is already taken: {}", values));
@@ -63,7 +66,10 @@ pub(super) async fn post(
 				StatusCode::INTERNAL_SERVER_ERROR.into_response()
 			}
 			e => {
-				error!("Recieved an error site::admin::add::post is not equipped to handle: {}", e);
+				error!(
+					"Recieved an error site::admin::add::post is not equipped to handle: {}",
+					e
+				);
 				StatusCode::INTERNAL_SERVER_ERROR.into_response()
 			}
 		}
@@ -74,7 +80,13 @@ pub(super) async fn post(
 }
 
 pub(super) async fn get(messages: Messages) -> impl IntoResponse {
-	match { AdminAddTemplate { messages: messages.into_iter().collect() } }.render() {
+	match {
+		AdminAddTemplate {
+			messages: messages.into_iter().collect(),
+		}
+	}
+	.render()
+	{
 		Ok(s) => {
 			debug!("Successfully rendered admin add html");
 			Html(s).into_response()

@@ -71,8 +71,10 @@ pub async fn post(
 		Redirect::to(&format!("/join?url={}&email={}", data.url, data.email)).into_response();
 	let response = match reqwest::get(format!("{}/webringer/auth", data.url)).await {
 		Ok(response) if response.status() == reqwest::StatusCode::NOT_FOUND => {
-			messages
-				.error(format!("Got a 404 error when trying to get {}webringer/auth", data.url));
+			messages.error(format!(
+				"Got a 404 error when trying to get {}webringer/auth",
+				data.url
+			));
 			return redirect_here;
 		}
 		Ok(response) => match response.text().await {
@@ -99,8 +101,10 @@ pub async fn post(
 	};
 	if response != data.url_hash {
 		error!("Response: {} Url hash: {}", response, data.url_hash);
-		messages
-			.error(format!("Url hash found but did not match:\n{}\n{}", response, data.url_hash));
+		messages.error(format!(
+			"Url hash found but did not match:\n{}\n{}",
+			response, data.url_hash
+		));
 		return redirect_here;
 	}
 	match state.add_site(&data.url, &data.email).await {

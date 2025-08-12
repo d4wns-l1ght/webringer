@@ -15,7 +15,9 @@ pub(super) async fn hash_password(password_plaintext: String) -> Result<String, 
 	match tokio::task::spawn_blocking(move || {
 		let argon2 = Argon2::default();
 		let salt = SaltString::generate(&mut OsRng);
-		let password_hash = argon2.hash_password(password_plaintext.as_bytes(), &salt).unwrap();
+		let password_hash = argon2
+			.hash_password(password_plaintext.as_bytes(), &salt)
+			.unwrap();
 		password_hash.to_string()
 	})
 	.await
