@@ -43,27 +43,26 @@ pub async fn post(
 				login_url = format!("{login_url}?next={next}")
 			};
 
-			return Redirect::to(&login_url);
+			return Redirect::to(&login_url).into_response();
 		}
 		Err(e) => {
-			// TODO: Maybe make this return a statuscode instead?
 			messages.error(format!("Error when authenticating admin: {e}"));
 			error!("Error when authenticating admin: {}", e);
-			return Redirect::to(".");
+			return StatusCode::INTERNAL_SERVER_ERROR.into_response();
 		}
 	};
 
 	if let Err(e) = auth_session.login(&admin).await {
 		error!("Error when logging in admin: {}", e);
-		return Redirect::to(".");
+		return StatusCode::INTERNAL_SERVER_ERROR.into_response();
 	}
 
 	if let Some(ref next) = creds.next {
 		debug!("Login successful, redirecting to {}", &next);
-		Redirect::to(next)
+		Redirect::to(next).into_response()
 	} else {
 		debug!("Login successful, redirecting to /");
-		Redirect::to("/")
+		Redirect::to("/").into_response()
 	}
 }
 

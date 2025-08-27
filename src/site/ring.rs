@@ -74,7 +74,7 @@ pub async fn random(State(state): State<RingState>) -> impl IntoResponse {
 		}
 		Err(e) => {
 			warn!("{e}");
-			Redirect::to(".").into_response()
+			StatusCode::INTERNAL_SERVER_ERROR.into_response()
 		}
 	}
 }
