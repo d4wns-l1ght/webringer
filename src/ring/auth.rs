@@ -46,7 +46,7 @@ impl Debug for Admin {
 		f.debug_struct("Admin")
 			.field("id", &self.id)
 			.field("username", &self.username)
-			.field("email", &self.email)
+			.field("email", &"redacted")
 			.field("password", &"redacted")
 			.finish()
 	}
