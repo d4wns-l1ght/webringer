@@ -2,7 +2,6 @@ use argon2::{
 	Argon2,
 	password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
-use async_trait::async_trait;
 use axum_login::{AuthUser, AuthnBackend, UserId};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
@@ -82,7 +81,6 @@ impl Debug for Credentials {
 	}
 }
 
-#[async_trait]
 impl AuthnBackend for RingState {
 	type User = Admin;
 	type Credentials = Credentials;
