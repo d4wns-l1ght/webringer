@@ -58,6 +58,21 @@ async fn landing_page(messages: Messages) -> impl IntoResponse {
 	}
 }
 
+async fn handle_async<F, T>(fut: F) -> Option<T>
+where
+	F: Future<Output = Result<T, RingError>>,
+	T: Default,
+{
+	match fut.await {
+		Ok(value) => Some(value),
+		Err(RingError::RowNotFound(_query)) => Some(T::default()),
+		Err(e) => {
+			error!("Error when getting the admin view of sites: {e}");
+			None
+		}
+	}
+}
+
 #[derive(Template)]
 #[template(path = "admin/sites_view.html")]
 pub struct AdminViewSitesTemplate {
@@ -71,33 +86,21 @@ async fn view(messages: Messages, State(state): State<RingState>) -> impl IntoRe
 	match (AdminViewSitesTemplate {
 		messages: messages.into_iter().collect(),
 		unapproved_sites: {
-			match state.get_list_unapproved().await {
-				Ok(sites) => sites,
-				Err(RingError::RowNotFound(_query)) => vec![],
-				Err(e) => {
-					error!("Error when getting the admin view of sites: {e}");
-					return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-				}
+			match handle_async(state.get_list_unapproved()).await {
+				Some(sites) => sites,
+				None => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
 			}
 		},
 		approved_sites: {
-			match state.get_list_approved().await {
-				Ok(sites) => sites,
-				Err(RingError::RowNotFound(_query)) => vec![],
-				Err(e) => {
-					error!("Error when getting the admin view of sites: {e}");
-					return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-				}
+			match handle_async(state.get_list_approved()).await {
+				Some(sites) => sites,
+				None => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
 			}
 		},
 		denied_sites: {
-			match state.get_list_denied().await {
-				Ok(sites) => sites,
-				Err(RingError::RowNotFound(_query)) => vec![],
-				Err(e) => {
-					error!("Error when getting the admin view of sites: {e}");
-					return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-				}
+			match handle_async(state.get_list_denied()).await {
+				Some(sites) => sites,
+				None => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
 			}
 		},
 	})
