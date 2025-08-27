@@ -35,10 +35,18 @@ pub fn router(state: RingState) -> Router {
 
 #[derive(Template)]
 #[template(path = "admin/landing_page.html")]
-pub struct AdminLandingPageTemplate {}
+pub struct AdminLandingPageTemplate {
+	messages: Vec<Message>,
+}
 
-async fn landing_page() -> impl IntoResponse {
-	match { AdminLandingPageTemplate {} }.render() {
+async fn landing_page(messages: Messages) -> impl IntoResponse {
+	match {
+		AdminLandingPageTemplate {
+			messages: messages.into_iter().collect(),
+		}
+	}
+	.render()
+	{
 		Ok(s) => {
 			debug!("Successfully rendered admin landing page html");
 			Html(s).into_response()

@@ -11,6 +11,9 @@
 <body>
 	<h1>WebRinger - Admin</h1>
 	<a href="/"><img src="/static/logo.svg" width=256></a>
+	{% for message in messages %}
+	<p>{{ message }}</p>
+	{% endfor %}
 	<a href="admin/view">
 		<p>View approved and unapproved sites</p>
 	</a>

@@ -7,6 +7,7 @@ use axum::{
 	routing::{get, post},
 };
 use axum_login::AuthUser;
+use axum_messages::Messages;
 use serde::Deserialize;
 use tracing::{debug, error, info, warn};
 
@@ -73,6 +74,7 @@ pub struct DeleteParams {
 async fn delete_account(
 	mut auth_session: AuthSession,
 	State(state): State<RingState>,
+	messages: Messages,
 	Query(params): Query<DeleteParams>,
 ) -> impl IntoResponse {
 	if params.delete_confirmed != Some("true".to_owned()) {
@@ -111,9 +113,26 @@ async fn delete_account(
 			);
 			StatusCode::INTERNAL_SERVER_ERROR.into_response()
 		}
+		Err(RingError::UnrecoverableDatabaseError(sqlx::Error::Database(ref e)))
+			if e.code().as_deref() == Some("1811") =>
+		{
+			info!(
+				"Attempting to delete admin failed as admin has existing approved/denied sites: {:?}",
+				admin
+			);
+			if let Err(e) = auth_session.login(&admin).await {
+				error!(
+					"Error re-logging-in to admin after failed account deletion: {:?}",
+					e
+				);
+				return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+			}
+			messages.error(
+				"You cannot delete this admin account as it has associated approvals/denials",
+			);
+			Redirect::to("/admin").into_response()
+		}
 		Err(e) => {
-			// TODO: This could be a FK constraint, e.g. the admin has approved/denied sites and
-			// therefore cannot be deleted - there should be a way to indicate this
 			error!("There was an error when trying to delete an admin: {e}");
 			StatusCode::INTERNAL_SERVER_ERROR.into_response()
 		}
