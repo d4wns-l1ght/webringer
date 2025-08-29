@@ -28,8 +28,8 @@ pub struct JoinParams {
 
 #[instrument]
 pub async fn get(messages: Messages, Query(params): Query<JoinParams>) -> impl IntoResponse {
-	let hasher = Sha256::new();
-	Sha256::new().update(&params.url);
+	let mut hasher = Sha256::new();
+	hasher.update(&params.url);
 	let hashed_url = hasher.finalize();
 	let hashed_url_hex = hex::encode(hashed_url);
 
@@ -93,13 +93,14 @@ pub async fn post(
 	};
 
 	if response != data.url_hash {
-		error!("Response: {} Url hash: {}", response, data.url_hash);
+		debug!("Response: {} Url hash: {}", response, data.url_hash);
 		messages.error(format!(
-			"Url hash found but did not match:\n{}\n{}",
+			"Url hash found but did not match: {} != {}",
 			response, data.url_hash
 		));
 		return redirect_here;
 	}
+
 	match state.add_site(&data.url, &data.email).await {
 		Ok(()) => {
 			Html("Your site has been registered, please wait for admin to approve it".to_owned())
