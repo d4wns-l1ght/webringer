@@ -69,29 +69,21 @@ pub async fn post(
 ) -> impl IntoResponse {
 	let redirect_here =
 		Redirect::to(&format!("/join?url={}&email={}", data.url, data.email)).into_response();
-	let response = match reqwest::get(format!("{}/webringer/auth", data.url)).await {
-		Ok(response) if response.status() == reqwest::StatusCode::NOT_FOUND => {
+	let response = match ureq::get(format!("{}/webringer/auth", data.url)).call() {
+		Ok(response) if response.status() == StatusCode::NOT_FOUND => {
 			messages.error(format!(
-				"Got a 404 error when trying to get {}webringer/auth",
+				"Got a 404 error when trying to get {}/webringer/auth",
 				data.url
 			));
 			return redirect_here;
 		}
-		Ok(response) => match response.text().await {
+		Ok(response) => match response.into_body().read_to_string() {
 			Ok(text) => text.trim().to_owned(),
 			Err(e) => {
-				error!("Error when converting join verify response to text: {e}");
+				error!("Error when converting join verify body to text: {e}");
 				return StatusCode::INTERNAL_SERVER_ERROR.into_response();
 			}
 		},
-		Err(e) if e.is_connect() => {
-			messages.error(format!("Could not connect to {}webringer/auth", data.url));
-			return redirect_here;
-		}
-		Err(e) if e.is_timeout() => {
-			messages.error(format!("The address {}webringer/auth timed out", data.url));
-			return redirect_here;
-		}
 		Err(e) => {
 			messages.error(format!(
 				"There was an error when getting the verification string from your site: {e}"
@@ -99,6 +91,7 @@ pub async fn post(
 			return redirect_here;
 		}
 	};
+
 	if response != data.url_hash {
 		error!("Response: {} Url hash: {}", response, data.url_hash);
 		messages.error(format!(
