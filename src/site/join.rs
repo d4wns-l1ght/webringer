@@ -103,8 +103,8 @@ pub async fn post(
 
 	match state.add_site(&data.url, &data.email).await {
 		Ok(()) => {
-			Html("Your site has been registered, please wait for admin to approve it".to_owned())
-				.into_response()
+			messages.info("Your site has been registered, please wait for admin to approve it");
+			redirect_here
 		}
 		Err(RingError::UniqueRowAlreadyPresent(site)) => {
 			messages.error(format!("The site {site} has already been registered"));
