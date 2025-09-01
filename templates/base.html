@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{% block title %}My Title{% endblock %}</title>
+	<link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+	<header>
+		<h1>WebRinger</h1>
+		<nav>
+			<a href="/">Home</a> |
+			<a href="/list">Webring List</a> |
+			<a href="/join">Join</a> |
+			<a href="/admin">Admin</a>
+		</nav>
+	</header>
+		<a href="/"><img src="/static/logo.svg" width=256></a>
+
+	<main>
+		{% block content %}{% endblock %}
+	</main>
+
+	<footer>
+		<p>© 2025 WebRinger</p>
+		<p>Created with Axum and Askama</p>
+	</footer>
+</body>
+
+</html>

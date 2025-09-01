@@ -75,6 +75,7 @@ async fn main() {
 	let auth_layer = AuthManagerLayerBuilder::new(backend.clone(), session_layer).build();
 
 	let router = Router::new()
+		.route("/", get(index))
 		.route("/join", get(join::get))
 		.route("/join", post(join::post))
 		.route("/leave", get(leave::get))
