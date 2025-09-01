@@ -12,8 +12,8 @@ use tokio::signal;
 use tower_http::services::{ServeDir, ServeFile};
 use tracing::{Instrument, error, info, info_span, instrument, warn};
 
-use webringer::ring::*;
-use webringer::site::*;
+use webringer::ring;
+use webringer::site;
 
 /// A server for hosting a webring!
 #[derive(Parser, Debug)]
@@ -71,23 +71,23 @@ async fn main() {
 
 	let session_store = MemoryStore::default();
 	let session_layer = SessionManagerLayer::new(session_store);
-	let backend = RingState::new(db_pool.await);
+	let backend = ring::RingState::new(db_pool.await);
 	let auth_layer = AuthManagerLayerBuilder::new(backend.clone(), session_layer).build();
 
 	let router = Router::new()
-		.route("/", get(index))
-		.route("/join", get(join::get))
-		.route("/join", post(join::post))
-		.route("/leave", get(leave::get))
-		.route("/leave", post(leave::post))
-		.route("/next", get(ring::next))
-		.route("/prev", get(ring::prev))
-		.route("/random", get(ring::random))
-		.route("/list", get(ring::list))
-		.route("/login", get(login::get))
-		.route("/login", post(login::post))
+		.route("/", get(site::index))
+		.route("/join", get(site::join::get))
+		.route("/join", post(site::join::post))
+		.route("/leave", get(site::leave::get))
+		.route("/leave", post(site::leave::post))
+		.route("/next", get(site::ring::next))
+		.route("/prev", get(site::ring::prev))
+		.route("/random", get(site::ring::random))
+		.route("/list", get(site::ring::list))
+		.route("/login", get(site::login::get))
+		.route("/login", post(site::login::post))
 		.with_state(backend.clone())
-		.nest("/admin", admin::router(backend))
+		.nest("/admin", site::admin::router(backend))
 		.layer(MessagesManagerLayer)
 		.layer(auth_layer)
 		.nest_service("/static", static_files.clone())
