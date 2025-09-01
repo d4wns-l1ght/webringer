@@ -1,3 +1,5 @@
+//! This module handles the implementation of authorization for the webring
+
 use argon2::{
 	Argon2,
 	password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
