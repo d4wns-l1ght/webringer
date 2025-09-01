@@ -16,16 +16,19 @@
 <body>
 	<header>
 		<h1>WebRinger</h1>
-		<nav>
-			<a href="/">Home</a> |
-			<a href="/list">Webring List</a> |
-			<a href="/admin">Admin</a>
+		<nav class="nav-bar">
+			<div class="nav-cell"><a href="/">Home</a></div>
+			<div class="nav-cell"><a href="/list">Webring List</a></div>
+			<div class="nav-cell"><a href="/admin">Admin</a></div>
 		</nav>
+
 	</header>
 	<a href="/"><img src="/static/logo.svg" width=256></a>
 
 	<main>
-		{% block content %}{% endblock %}
+		<div class="centered-box">
+			{% block content %}{% endblock %}
+		</div>
 	</main>
 
 	<footer>
