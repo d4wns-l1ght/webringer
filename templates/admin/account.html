@@ -1,37 +1,29 @@
-<!doctype html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-	<title>WebRinger - Account</title>
-	<link href="/static/css/style.css" rel="stylesheet" />
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width" />
-</head>
+{% block title %}Home - WebRinger{% endblock %}
 
-<body>
-	<h1>WebRinger</h1>
-	<a href="/"><img src="/static/logo.svg" width=256></a>
-	<div>
-		<p>Username</p>
-		<p>{{admin.username}}</p>
-	</div>
-	<div>
-		<p>Email</p>
-		<p>{{admin.email}}</p>
-	</div>
-	<div>
-		<a href="/admin/account/change-password">
-			<p>Change password</p>
-		</a>
-	</div>
-	<form method="post" action="account/delete">
-		<input type="submit" value="Delete Account">
-	</form>
-	{% if delete_button_pressed %}
-	<form method="post" action="account/delete?delete_confirmed=true">
-		<input type="submit" value="Are you sure? Click here to confirm">
-	</form>
-	{% endif %}
-</body>
+{% block content %}
 
-</html>
+<div>
+	<p>Username</p>
+	<p>{{admin.username}}</p>
+</div>
+<div>
+	<p>Email</p>
+	<p>{{admin.email}}</p>
+</div>
+<div>
+	<a href="/admin/account/change-password">
+		<p>Change password</p>
+	</a>
+</div>
+<form method="post" action="account/delete">
+	<input type="submit" value="Delete Account">
+</form>
+{% if delete_button_pressed %}
+<form method="post" action="account/delete?delete_confirmed=true">
+	<input type="submit" value="Are you sure? Click here to confirm">
+</form>
+{% endif %}
+
+{% endblock %}

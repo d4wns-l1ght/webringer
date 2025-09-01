@@ -1,37 +1,27 @@
-<!doctype html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-	<title>WebRinger - Add Admin</title>
-	<link href="/static/css/style.css" rel="stylesheet" />
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width" />
-</head>
+{% block title %}Home - WebRinger{% endblock %}
 
-<body>
-	<h1>WebRinger</h1>
-	<a href="/"><img src="/static/logo.svg" width=256></a>
-	<h2>Here's where you add a new admin</h2>
-	{% for message in messages %}
-	<p>{{ message }}</p>
-	{% endfor %}
+{% block content %}
 
-	<form method="post" action="add">
-		<label>
-			Username
-			<input required name="username" id="username" placeholder="webringadmin"> </label>
-		<label>Email
-			<input required type="email" name="email" id="email" placeholder="ringerweb@myvuw.ac.nz"
-				pattern=".*@.*\..*">
-		</label>
-		<label>
-			Password
-			<input required type="password" name="password" id="password" placeholder="password"> </label>
-		<label>
-			Confirm Password
-			<input required type="password" name="confirm_password" id="confirm_password" placeholder="password"> </label>
-		<input type="submit" value="Add">
-	</form>
-</body>
+<h2>Here's where you add a new admin</h2>
+{% for message in messages %}
+<p>{{ message }}</p>
+{% endfor %}
 
-</html>
+<form method="post" action="add">
+	<label>
+		Username
+		<input required name="username" id="username" placeholder="webringadmin"> </label>
+	<label>Email
+		<input required type="email" name="email" id="email" placeholder="ringerweb@myvuw.ac.nz" pattern=".*@.*\..*">
+	</label>
+	<label>
+		Password
+		<input required type="password" name="password" id="password" placeholder="password"> </label>
+	<label>
+		Confirm Password
+		<input required type="password" name="confirm_password" id="confirm_password" placeholder="password"> </label>
+	<input type="submit" value="Add">
+</form>
+{% endblock %}

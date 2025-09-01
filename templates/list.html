@@ -1,22 +1,18 @@
-<!doctype html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-	<title>WebRinger - Site list</title>
-	<link href="/static/css/style.css" rel="stylesheet" />
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width" />
-</head>
+{% block title %}Home - WebRinger{% endblock %}
 
-<body>
-	<h1>WebRinger</h1>
-	<a href="/"><img src="/static/logo.svg" width=256></a>
-	<h2>Sites</h2>
-	<ul>
-		{% for site in sites %}
-		<li><a href={{ site }}>{{ site }}</a></li>
-		{% endfor %}
-	</ul>
-</body>
+{% block content %}
 
-</html>
+<h2>Sites</h2>
+{% if sites.is_empty() %}
+<p>No sites in the Webring yet :( Maybe you should add yours!</p>
+{% else %}
+<ul>
+	{% for site in sites %}
+	<li><a href={{ site }}>{{ site }}</a></li>
+	{% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}

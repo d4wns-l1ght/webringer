@@ -1,35 +1,26 @@
-<!doctype html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-	<title>WebRinger - Admin login</title>
-	<link href="/static/css/style.css" rel="stylesheet" />
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width" />
-</head>
+{% block title %}Home - WebRinger{% endblock %}
 
-<body>
-	<h1>WebRinger</h1>
-	<a href="/"><img src="/static/logo.svg" width=256></a>
-	{% for message in messages %}
-	<p>{{ message }}</p>
-	{% endfor %}
+{% block content %}
+
+{% for message in messages %}
+<p>{{ message }}</p>
+{% endfor %}
 
 
-	<p>Login here:</p>
-	<form method="post" action="login">
-		<label>
-			Username
-			<input required name="username" id="username" placeholder="webringadmin"> </label>
-		<label>
-			Password
-			<input required type="password" name="password" id="password" placeholder="password"> </label>
-		<input type="submit" value="Login">
-		{% if let Some(next) = next %}
-		<input type="hidden" name="next" value="{{next}}" />
-		{% endif %}
-	</form>
+<p>Login here:</p>
+<form method="post" action="login">
+	<label>
+		Username
+		<input required name="username" id="username" placeholder="webringadmin"> </label>
+	<label>
+		Password
+		<input required type="password" name="password" id="password" placeholder="password"> </label>
+	<input type="submit" value="Login">
+	{% if let Some(next) = next %}
+	<input type="hidden" name="next" value="{{next}}" />
+	{% endif %}
+</form>
 
-</body>
-
-</html>
+{% endblock %}

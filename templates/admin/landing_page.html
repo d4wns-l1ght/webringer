@@ -1,32 +1,23 @@
-<!doctype html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-	<title>WebRinger - Admin</title>
-	<link href="/static/css/style.css" rel="stylesheet" />
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width" />
-</head>
+{% block title %}Home - WebRinger{% endblock %}
 
-<body>
-	<h1>WebRinger - Admin</h1>
-	<a href="/"><img src="/static/logo.svg" width=256></a>
-	{% for message in messages %}
-	<p>{{ message }}</p>
-	{% endfor %}
-	<a href="admin/view">
-		<p>View approved and unapproved sites</p>
-	</a>
-	<a href="admin/add">
-		<p>Add a new admin</p>
-	</a>
-	<a href="admin/account">
-		<p>Account info</p>
-	</a>
-	<form action="/admin/logout" method="post">
-		<button type="submit">Logout</button>
-	</form>
+{% block content %}
 
-</body>
+{% for message in messages %}
+<p>{{ message }}</p>
+{% endfor %}
+<a href="admin/view">
+	<p>View approved and unapproved sites</p>
+</a>
+<a href="admin/add">
+	<p>Add a new admin</p>
+</a>
+<a href="admin/account">
+	<p>Account info</p>
+</a>
+<form action="/admin/logout" method="post">
+	<button type="submit">Logout</button>
+</form>
 
-</html>
+{% endblock %}
