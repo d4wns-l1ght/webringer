@@ -6,6 +6,11 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{% block title %}My Title{% endblock %}</title>
 	<link rel="stylesheet" href="/static/css/style.css">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap"
+		rel="stylesheet">
 </head>
 
 <body>
@@ -17,7 +22,7 @@
 			<a href="/admin">Admin</a>
 		</nav>
 	</header>
-		<a href="/"><img src="/static/logo.svg" width=256></a>
+	<a href="/"><img src="/static/logo.svg" width=256></a>
 
 	<main>
 		{% block content %}{% endblock %}
