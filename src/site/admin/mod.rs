@@ -122,6 +122,6 @@ async fn logout(mut auth_session: AuthSession) -> impl IntoResponse {
 		Ok(Some(admin)) => info!("Admin {:?} logged out", admin),
 		Ok(None) => warn!("Tried to logout but there was no active user"),
 		Err(e) => error!("Error when logging out admin: {}", e),
-	};
+	}
 	([("content-length", "0")], Redirect::to("/"))
 }

@@ -22,9 +22,8 @@ pub(super) async fn post(
 	State(state): State<RingState>,
 	Form(form): Form<ApproveSiteForm>,
 ) -> impl IntoResponse {
-	let admin = match auth_session.user {
-		Some(admin) => admin,
-		None => return StatusCode::UNAUTHORIZED.into_response(),
+	let Some(admin) = auth_session.user else {
+		return StatusCode::UNAUTHORIZED.into_response();
 	};
 	if let Err(e) = state.approve_site(&form.url, admin.id()).await {
 		error!("Error when trying to approve site: {e}");

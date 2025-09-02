@@ -54,7 +54,7 @@ pub(super) async fn post(
 	{
 		match e {
 			RingError::UniqueRowAlreadyPresent(values) => {
-				messages.error(format!("Email or username is already taken: {}", values));
+				messages.error(format!("Email or username is already taken: {values}"));
 				Redirect::to(PATH).into_response()
 			}
 			RingError::TaskJoin(e) => {

@@ -36,12 +36,11 @@ pub struct AdminAccountViewTemplate {
 
 async fn view(auth_session: AuthSession, Query(params): Query<DeleteParams>) -> impl IntoResponse {
 	match (AdminAccountViewTemplate {
-		admin: match auth_session.user {
-			Some(admin) => admin,
-			None => {
-				error!("Admin method called without logged in admin");
-				return StatusCode::UNAUTHORIZED.into_response();
-			}
+		admin: if let Some(admin) = auth_session.user {
+			admin
+		} else {
+			error!("Admin method called without logged in admin");
+			return StatusCode::UNAUTHORIZED.into_response();
 		},
 		delete_button_pressed: {
 			if params.delete_pressed == Some("true".to_owned()) {

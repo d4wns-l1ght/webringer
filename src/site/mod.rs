@@ -14,6 +14,10 @@ pub mod ring;
 #[template(path = "index.html")]
 pub struct IndexTemplate {}
 
+/// Gets the index of the site
+///
+/// # Panics
+/// Panics if there is a problem in [`Template::render`]
 pub async fn index() -> Html<String> {
-	Html(IndexTemplate {}.render().unwrap())
+	Html(IndexTemplate {}.render().expect("Problem rendering index template"))
 }

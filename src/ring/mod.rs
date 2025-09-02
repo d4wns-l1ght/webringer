@@ -63,13 +63,16 @@ pub enum RingError {
 }
 
 impl RingState {
-	pub fn new(database: SqlitePool) -> Self {
-		RingState { database }
+	#[must_use]
+	pub const fn new(database: SqlitePool) -> Self {
+		Self { database }
 	}
 
 	/// Add a site to the webring
-	/// Returns [RingError::SiteAlreadyPresent] if the site has already been registered
-	/// Otherwise, [RingError::UnrecoverableDatabaseError]
+	///
+	/// # Errors
+	/// Returns [`RingError::SiteAlreadyPresent`] if the site has already been registered
+	/// Otherwise, [`RingError::UnrecoverableDatabaseError`]
 	#[instrument]
 	pub async fn add_site(&self, root_url: &str, email: &str) -> Result<(), RingError> {
 		match sqlx::query!(
@@ -104,8 +107,10 @@ impl RingState {
 	}
 
 	/// Removes a site from the webring
-	/// Returns [RingError::SiteNotPresent] if the site is not present
-	/// Otherwise, [RingError::UnrecoverableDatabaseError]
+	///
+	/// # Errors
+	/// Returns [`RingError::SiteNotPresent`] if the site is not present
+	/// Otherwise, [`RingError::UnrecoverableDatabaseError`]
 	#[instrument]
 	pub async fn remove_site(&self, root_url: &str) -> Result<(), RingError> {
 		match sqlx::query!("DELETE FROM sites WHERE root_url = ?", root_url)
@@ -135,6 +140,10 @@ impl RingState {
 		}
 	}
 
+	/// Approves a site for the webring
+	///
+	/// # Errors
+	/// [`RingError::UnrecoverableDatabaseError`] if there is a problem with the database
 	#[instrument]
 	pub async fn approve_site(&self, root_url: &str, admin_id: i64) -> Result<(), RingError> {
 		let mut tx = match self.database.begin().await {
@@ -167,7 +176,7 @@ impl RingState {
 			// TODO: Distinguish for the type of error you get when there is a constraint error
 			// (e.g. there is already a denial_id set or vice versa)
 			return Err(RingError::UnrecoverableDatabaseError(e));
-		};
+		}
 
 		if let Err(e) = tx.commit().await {
 			return Err(RingError::UnrecoverableDatabaseError(e));
@@ -176,6 +185,10 @@ impl RingState {
 		Ok(())
 	}
 
+	/// Denies a site for the webring
+	///
+	/// # Errors
+	/// [`RingError::UnrecoverableDatabaseError`] if there is a problem with the database
 	#[instrument]
 	pub async fn deny_site(
 		&self,
@@ -212,7 +225,7 @@ impl RingState {
 		.await
 		{
 			return Err(RingError::UnrecoverableDatabaseError(e));
-		};
+		}
 
 		if let Err(e) = tx.commit().await {
 			return Err(RingError::UnrecoverableDatabaseError(e));
@@ -222,9 +235,11 @@ impl RingState {
 	}
 
 	/// Gets the webring site after the current one
-	/// Returns [RingError::SiteNotApproved] if the current site is not part of the webring
-	/// Returns [RingError::RowNotFound] if the current site is last in the webring
-	/// Otherwise, [RingError::UnrecoverableDatabaseError]
+	///
+	/// # Errors
+	/// Returns [`RingError::SiteNotApproved`] if the current site is not part of the webring
+	/// Returns [`RingError::RowNotFound`] if the current site is last in the webring
+	/// Otherwise, [`RingError::UnrecoverableDatabaseError`]
 	#[instrument]
 	pub async fn get_next(&self, current_url: &str) -> Result<String, RingError> {
 		let id = self.get_approved_site_id(current_url).await?;
@@ -242,9 +257,11 @@ impl RingState {
 	}
 
 	/// Gets the webring site before the current one
-	/// Returns [RingError::SiteNotApproved] if the current site is not part of the webring
-	/// Returns [RingError::RowNotFound] if the current site is last in the webring
-	/// Otherwise, [RingError::UnrecoverableDatabaseError]
+	///
+	/// # Errors
+	/// Returns [`RingError::SiteNotApproved`] if the current site is not part of the webring
+	/// Returns [`RingError::RowNotFound`] if the current site is last in the webring
+	/// Otherwise, [`RingError::UnrecoverableDatabaseError`]
 	#[instrument]
 	pub async fn get_prev(&self, current_url: &str) -> Result<String, RingError> {
 		let id = self.get_approved_site_id(current_url).await?;
@@ -264,6 +281,11 @@ impl RingState {
         }
 	}
 
+	/// Gets the id of an approved site with the given url
+	///
+	/// # Errors
+	/// [`RingError::SiteNotApproved`] if the site is not approved
+	/// [`RingError::UnrecoverableDatabaseError`] if there is a problem with the database
 	#[instrument]
 	async fn get_approved_site_id(&self, root_url: &str) -> Result<i64, RingError> {
 		match sqlx::query!(
@@ -291,8 +313,10 @@ impl RingState {
 	}
 
 	/// Gets a random site from the webring
-	/// Returns [RingError::RowNotFound] if there are no approved sites
-	/// Otherwise, [RingError::UnrecoverableDatabaseError]
+	///
+	/// # Errors
+	/// Returns [`RingError::RowNotFound`] if there are no approved sites
+	/// Otherwise, [`RingError::UnrecoverableDatabaseError`]
 	#[instrument]
 	pub async fn get_random_site(&self) -> Result<String, RingError> {
 		match sqlx::query!("SELECT root_url FROM approved_sites ORDER BY random() LIMIT 1")
@@ -314,8 +338,10 @@ impl RingState {
 	}
 
 	/// Gets a list of all approved webring sites
-	/// Returns [RingError::RowNotFound] if there are no verified sites
-	/// Otherwise, [RingError::UnrecoverableDatabaseError]
+	///
+	/// # Errors
+	/// Returns [`RingError::RowNotFound`] if there are no verified sites
+	/// Otherwise, [`RingError::UnrecoverableDatabaseError`]
 	#[instrument]
 	pub async fn get_list_approved(&self) -> Result<Vec<ApprovedSite>, RingError> {
 		match sqlx::query_as("SELECT * FROM approved_sites ORDER BY random()")
@@ -336,6 +362,11 @@ impl RingState {
 		}
 	}
 
+	/// Gets all the denied sites
+	///
+	/// # Errors
+	/// [`RingError::RowNotFound`] if there are no denied sites
+	/// [`RingError::UnrecoverableDatabaseError`] if there is a problem with the database
 	#[instrument]
 	pub async fn get_list_denied(&self) -> Result<Vec<DeniedSite>, RingError> {
 		match sqlx::query_as("SELECT * FROM denied_sites")
@@ -344,7 +375,7 @@ impl RingState {
 		{
 			Ok(sites) => Ok(sites),
 			Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
-				"SELECT root_url FROM denied_sites".to_owned(),
+				"SELECT * FROM denied_sites".to_owned(),
 			)),
 			Err(e) => {
 				error!(
@@ -357,6 +388,10 @@ impl RingState {
 	}
 
 	/// Gets a list of all unapproved webring sites
+	///
+	/// # Errors
+	/// [`RingError::RowNotFound`] if there are no unapproved sites
+	/// [`RingError::UnrecoverableDatabaseError`] if there is a problem with the database
 	#[instrument]
 	pub async fn get_list_unapproved(&self) -> Result<Vec<UnapprovedSite>, RingError> {
 		match sqlx::query_as("SELECT * FROM unapproved_sites ORDER BY id")
@@ -365,7 +400,7 @@ impl RingState {
 		{
 			Ok(sites) => Ok(sites),
 			Err(sqlx::Error::RowNotFound) => Err(RingError::RowNotFound(
-				"SELECT * FROM unverified_sites ORDER BY id".to_owned(),
+				"SELECT * FROM unapproved_sites ORDER BY id".to_owned(),
 			)),
 			Err(e) => {
 				error!(
@@ -377,6 +412,12 @@ impl RingState {
 		}
 	}
 
+	/// Gets a list of all unapproved webring sites
+	///
+	/// # Errors
+	/// [`RingError::UniqueRowAlreadyPresent`] if the new admins email or username are already in
+	/// use
+	/// [`RingError::UnrecoverableDatabaseError`] if there is a problem with the database
 	#[instrument]
 	pub async fn add_admin(
 		&self,
@@ -417,6 +458,12 @@ impl RingState {
 			}
 		}
 	}
+
+	/// Deletes an admin from the webring
+	///
+	/// # Errors
+	/// [`RingError::RowNotFound`] if there is no admin with the given id
+	/// [`RingError::UnrecoverableDatabaseError`] if there is a problem with the database
 	#[instrument]
 	pub async fn delete_admin(&self, admin_id: i64) -> Result<(), RingError> {
 		match sqlx::query("DELETE FROM admins WHERE id = ?")

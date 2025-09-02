@@ -40,8 +40,8 @@ pub async fn post(
 			messages.error("Invalid credentials");
 			let mut login_url = "/login".to_owned();
 			if let Some(next) = creds.next {
-				login_url = format!("{login_url}?next={next}")
-			};
+				login_url = format!("{login_url}?next={next}");
+			}
 
 			return Redirect::to(&login_url).into_response();
 		}
@@ -57,13 +57,13 @@ pub async fn post(
 		return StatusCode::INTERNAL_SERVER_ERROR.into_response();
 	}
 
-	if let Some(ref next) = creds.next {
-		debug!("Login successful, redirecting to {}", &next);
-		Redirect::to(next).into_response()
-	} else {
+	creds.next.as_ref().map_or_else(|| {
 		debug!("Login successful, redirecting to /");
 		Redirect::to("/").into_response()
-	}
+	}, |next| {
+		debug!("Login successful, redirecting to {}", &next);
+		Redirect::to(next).into_response()
+	})
 }
 
 pub async fn get(messages: Messages, Query(NextUrl { next }): Query<NextUrl>) -> impl IntoResponse {

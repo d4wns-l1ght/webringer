@@ -37,9 +37,9 @@ pub(super) async fn get(messages: Messages) -> impl IntoResponse {
 
 #[derive(Clone, Deserialize)]
 pub struct ChangePasswordForm {
-	pub current_password: String,
-	pub new_password: String,
-	pub confirm_new_password: String,
+	pub current: String,
+	pub new: String,
+	pub confirm_new: String,
 }
 
 pub(super) async fn post(
@@ -47,20 +47,17 @@ pub(super) async fn post(
 	messages: Messages,
 	Form(input): Form<ChangePasswordForm>,
 ) -> impl IntoResponse {
-	let admin = match auth_session.user {
-		Some(ref a) => a,
-		None => {
-			error!("Tried to alter an admin account when not logged in");
-			return StatusCode::UNAUTHORIZED.into_response();
-		}
+	let Some(ref admin) = auth_session.user else {
+		error!("Tried to alter an admin account when not logged in");
+		return StatusCode::UNAUTHORIZED.into_response();
 	};
-	if input.new_password != input.confirm_new_password {
+	if input.new != input.confirm_new {
 		messages.error("New password and Confirmed new password do not match");
 		return Redirect::to("./change-password").into_response();
 	}
 	match auth_session
 		.backend
-		.change_password(admin, input.current_password, input.new_password)
+		.change_password(admin, input.current, input.new)
 		.await
 	{
 		Ok(()) => {

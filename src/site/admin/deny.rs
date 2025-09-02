@@ -23,9 +23,8 @@ pub(super) async fn post(
 	State(state): State<RingState>,
 	Form(form): Form<DenySiteForm>,
 ) -> impl IntoResponse {
-	let admin = match auth_session.user {
-		Some(admin) => admin,
-		None => return StatusCode::UNAUTHORIZED.into_response(),
+	let Some(admin) = auth_session.user else {
+		return StatusCode::UNAUTHORIZED.into_response();
 	};
 	if let Err(e) = state.deny_site(&form.url, &form.reason, admin.id()).await {
 		error!("Error when trying to deny site: {e}");

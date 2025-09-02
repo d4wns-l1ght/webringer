@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic, clippy::all, clippy::cargo)]
+#![allow(clippy::module_name_repetitions, clippy::multiple_crate_versions)]
 use std::time::Duration;
 
 use axum::Router;
@@ -114,6 +116,6 @@ async fn main() {
 		})
 		.await
 	{
-		error!("Axum serving error: {}", e)
+		error!("Axum serving error: {}", e);
 	}
 }

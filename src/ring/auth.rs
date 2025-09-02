@@ -50,7 +50,7 @@ impl Debug for Admin {
 			.field("username", &self.username)
 			.field("email", &"redacted")
 			.field("password", &"redacted")
-			.finish()
+			.finish_non_exhaustive()
 	}
 }
 
@@ -92,16 +92,13 @@ impl AuthnBackend for RingState {
 		&self,
 		creds: Self::Credentials,
 	) -> Result<Option<Self::User>, Self::Error> {
-		let admin = match sqlx::query_as::<_, Admin>("SELECT * FROM admins WHERE username = ?")
+		let Some(admin) = sqlx::query_as::<_, Admin>("SELECT * FROM admins WHERE username = ?")
 			.bind(&creds.username)
 			.fetch_optional(&self.database)
 			.await?
-		{
-			Some(admin) => admin,
-			None => {
-				debug!("Couldn't find an admin with username {}", creds.username);
-				return Ok(None);
-			}
+		else {
+			debug!("Couldn't find an admin with username {}", creds.username);
+			return Ok(None);
 		};
 
 		// Verifying the password is blocking and potentially slow, so we'll do so via `spawn_blocking`.
@@ -142,24 +139,26 @@ impl AuthnBackend for RingState {
 }
 
 impl RingState {
+	/// Changes the current users password
+	///
+	/// # Errors
+	/// [`RingError::UnauthorisedAdmin`] if the user is not authorised/logged in
+	/// [`RingError::UnrecoverableDatabaseError`] if there is a problem with the database
 	pub async fn change_password(
 		&mut self,
 		logged_in_user: &Admin,
 		current_password_plaintext: String,
 		new_password_plaintext: String,
 	) -> Result<(), RingError> {
-		let admin = match self
+		let Some(admin) = self
 			.authenticate(Credentials {
 				username: logged_in_user.username.clone(),
 				password: current_password_plaintext,
 				next: None,
 			})
 			.await?
-		{
-			Some(admin) => admin,
-			None => {
-				return Err(RingError::UnauthorisedAdmin);
-			}
+		else {
+			return Err(RingError::UnauthorisedAdmin);
 		};
 		let new_password_hashed = hash_password(new_password_plaintext).await?;
 		if let Err(e) = sqlx::query!(
@@ -172,7 +171,7 @@ impl RingState {
 		{
 			error!("Error when trying to update admin password: {e}");
 			return Err(RingError::UnrecoverableDatabaseError(e));
-		};
+		}
 		Ok(())
 	}
 }
