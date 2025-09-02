@@ -5,6 +5,7 @@ use std::str::FromStr;
 use std::time::Duration;
 
 use axum::Router;
+use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use axum_login::AuthManagerLayerBuilder;
 use axum_login::tower_sessions::{MemoryStore, SessionManagerLayer};
@@ -14,7 +15,6 @@ use sqlx::SqlitePool;
 use sqlx::migrate::Migrator;
 use sqlx::sqlite::SqlitePoolOptions;
 use tokio::signal;
-use tower_http::services::{ServeDir, ServeFile};
 use tracing::{Instrument, error, info, info_span, instrument, trace, warn};
 
 use webringer::ring;
@@ -44,6 +44,47 @@ where
 			info!("Using default {:?} value of {:?}", key, default);
 			default
 		})
+}
+
+#[derive(rust_embed::Embed)]
+#[folder = "static/"]
+struct Static;
+
+struct StaticFile<T>(pub T);
+
+impl<T> IntoResponse for StaticFile<T>
+where
+	T: Into<String>,
+{
+	fn into_response(self) -> axum::response::Response {
+		let path: String = self.0.into();
+
+		match Static::get(path.as_str()) {
+			Some(content) => {
+				let mime = mime_guess::from_path(path).first_or_octet_stream();
+				(
+					[(axum::http::header::CONTENT_TYPE, mime.as_ref())],
+					content.data,
+				)
+					.into_response()
+			}
+			None => (axum::http::StatusCode::NOT_FOUND, "404 Not Found").into_response(),
+		}
+	}
+}
+
+async fn static_handler(uri: axum::http::Uri) -> impl IntoResponse {
+	let mut path = uri.path().trim_start_matches('/').to_string();
+
+	if path.starts_with("static/") {
+		path = path.replace("static/", "");
+	}
+
+	StaticFile(path)
+}
+
+async fn not_found() -> impl IntoResponse {
+	static_handler(axum::http::Uri::from_static("/static/404.html")).await
 }
 
 static MIGRATOR: Migrator = sqlx::migrate!("./migrations");
@@ -101,8 +142,6 @@ async fn main() {
 
 	let address = format!("{}:{}", args.address, args.port);
 
-	let static_files = ServeDir::new("static").not_found_service(ServeFile::new("static/404.html"));
-
 	let db_pool = get_db_pool();
 
 	let session_store = MemoryStore::default();
@@ -126,8 +165,8 @@ async fn main() {
 		.nest("/admin", site::admin::router(backend))
 		.layer(MessagesManagerLayer)
 		.layer(auth_layer)
-		.nest_service("/static", static_files.clone())
-		.fallback_service(static_files);
+		.route("/static/{*file}", get(static_handler))
+		.fallback_service(get(not_found));
 
 	info!("Binding to {}", address);
 	let listener = match tokio::net::TcpListener::bind(address)
