@@ -1,7 +1,7 @@
 [package]
 name = "webringer"
 description = "A bin/lib crate for a webring site"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["sofa <babalark@proton.me>","d4wns-l1ght <neovx.23@proton.me>"]
 readme = "README.md"
 repository = "https://codeberg.org/babalark/webringer"
