@@ -1,7 +1,7 @@
 [package]
 name = "webringer"
 description = "A bin/lib crate for a webring site"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["sofa <babalark@proton.me>","d4wns-l1ght <neovx.23@proton.me>"]
 readme = "README.md"
 repository = "https://codeberg.org/babalark/webringer"
@@ -9,6 +9,17 @@ keywords = ["webring", "website", "server", "social"]
 categories = ["command-line-utilities", "web-programming"]
 license = "AGPL-3.0"
 edition = "2024"
+include = [
+	"Cargo.toml",
+	"Cargo.lock",
+	"src/**",
+	"templates/**",
+	"static/**",
+	"migrations/**",
+	".sqlx/**",
+	"README.md",
+	"LICENSE",
+]
 
 [dependencies]
 axum = { version = "0.8.4", features = ["http2", "http1", "query", "form"] }
