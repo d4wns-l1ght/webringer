@@ -1,5 +1,7 @@
 #![warn(clippy::pedantic, clippy::all, clippy::cargo)]
 #![allow(clippy::module_name_repetitions, clippy::multiple_crate_versions)]
+use std::fmt::Debug;
+use std::str::FromStr;
 use std::time::Duration;
 
 use axum::Router;
@@ -9,10 +11,11 @@ use axum_login::tower_sessions::{MemoryStore, SessionManagerLayer};
 use axum_messages::MessagesManagerLayer;
 use clap::{Parser, arg};
 use sqlx::SqlitePool;
+use sqlx::migrate::Migrator;
 use sqlx::sqlite::SqlitePoolOptions;
 use tokio::signal;
 use tower_http::services::{ServeDir, ServeFile};
-use tracing::{Instrument, error, info, info_span, instrument, warn};
+use tracing::{Instrument, error, info, info_span, instrument, trace, warn};
 
 use webringer::ring;
 use webringer::site;
@@ -30,21 +33,46 @@ struct Args {
 	port: u16,
 }
 
+fn read_env_var<T>(key: &str, default: T) -> T
+where
+	T: FromStr + Debug,
+{
+	dotenvy::var(key)
+		.ok()
+		.and_then(|s| s.parse().ok())
+		.unwrap_or_else(|| {
+			info!("Using default {:?} value of {:?}", key, default);
+			default
+		})
+}
+
+static MIGRATOR: Migrator = sqlx::migrate!("./migrations");
+
 async fn get_db_pool() -> SqlitePool {
-	match SqlitePoolOptions::new()
-		.min_connections(5)
-		.max_connections(20)
-		.acquire_timeout(Duration::from_secs(10)) // 10 seconds
-		.idle_timeout(Some(Duration::from_secs(300))) // 5 minutes
+	let db_url: String = read_env_var("DATABASE_URL", "sqlite://data.db".to_string());
+
+	if db_url.starts_with("sqlite://") {
+		let path = db_url.trim_start_matches("sqlite://");
+		if !std::path::Path::new(path).exists() {
+			std::fs::File::create(path).expect("Failed to create database file");
+		}
+	}
+
+	let min_connections = read_env_var("MIN_CONNECTIONS", 5);
+	let max_connections = read_env_var("MAX_CONNECTIONS", 5);
+	let acquire_timeout = Duration::from_secs(read_env_var("ACQUIRE_TIMEOUT_SECS", 10u64));
+	let idle_timeout = Some(Duration::from_secs(read_env_var(
+		"IDLE_TIMEOUT_SECS",
+		300u64,
+	)));
+
+	let pool = match SqlitePoolOptions::new()
+		.min_connections(min_connections)
+		.max_connections(max_connections)
+		.acquire_timeout(acquire_timeout) // 10 seconds
+		.idle_timeout(idle_timeout) // 5 minutes
 		.max_lifetime(None)
-		.connect(&dotenvy::var("DATABASE_URL").unwrap_or_else(|e| {
-			let default_url = "sqlite://data.db".to_owned();
-			warn!(
-				"Could not find DATABASE_URL environment variable. Using default url {}. Error message: {}",
-				&default_url, e
-			);
-			default_url
-		}))
+		.connect(&db_url)
 		.instrument(info_span!("Create Database"))
 		.await
 	{
@@ -53,18 +81,24 @@ async fn get_db_pool() -> SqlitePool {
 			error!("Could not connect to database: {}", e);
 			panic!();
 		}
-	}
+	};
+
+	trace!("Running migrations");
+	MIGRATOR.run(&pool).await.expect("Could not run migrations");
+
+	pool
 }
 
 #[tokio::main(flavor = "current_thread")]
 #[instrument]
 async fn main() {
 	tracing_subscriber::fmt::init();
+	let args = Args::parse();
+
 	if let Err(e) = dotenvy::dotenv() {
 		warn!("No .env file found: {}", e);
 	}
 
-	let args = Args::parse();
 	let address = format!("{}:{}", args.address, args.port);
 
 	let static_files = ServeDir::new("static").not_found_service(ServeFile::new("static/404.html"));
