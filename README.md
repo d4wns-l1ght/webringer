@@ -1,5 +1,5 @@
 # Webringer
-![Logo](static/logo.svg)
+![Logo](https://codeberg.org/babalark/webringer/raw/branch/main/static/logo.svg)
 
 A crate for running a [webring](https://en.wikipedia.org/wiki/Webring). It comes with a pre-made
 GUI but you can just also add it to your project and use the `ring` and `site` modules and write your own HTML/CSS (see [Using it as a library crate](#using-it-as-a-library-crate))
