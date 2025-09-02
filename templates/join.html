@@ -13,7 +13,7 @@
 <p>{{ url_hash }}</p>
 
 {% for message in messages %}
-<p>{{ message }}</p>
+<p class="message {{ message.level }}">{{ message }}</p>
 {% endfor %}
 <form method="post" action="join">
 	<input type="hidden" name="url" value="{{url}}">

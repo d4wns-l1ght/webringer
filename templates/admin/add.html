@@ -6,7 +6,7 @@
 
 <h2>Here's where you add a new admin</h2>
 {% for message in messages %}
-<p>{{ message }}</p>
+<p class="message {{ message.level }}">{{ message }}</p>
 {% endfor %}
 
 <form method="post" action="add">

@@ -5,7 +5,7 @@
 {% block content %}
 
 {% for message in messages %}
-<p>{{ message }}</p>
+<p class="message {{ message.level }}">{{ message }}</p>
 {% endfor %}
 <h2>Unapproved Sites</h2>
 <table>

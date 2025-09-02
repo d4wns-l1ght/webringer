@@ -33,7 +33,6 @@ header {
 	padding: 0.5rem 1rem;
 }
 
-
 /* Heading */
 h1,
 h2,
@@ -143,21 +142,49 @@ input[type="submit"]:hover {
 }
 
 table {
-    width: 100%;                 /* table fills the container */
-    border-collapse: collapse;   /* combine borders for a clean look */
-    table-layout: fixed;         /* ensures fixed column widths */
+	width: 100%; /* table fills the container */
+	border-collapse: collapse; /* combine borders for a clean look */
+	table-layout: fixed; /* ensures fixed column widths */
 }
 
-th, td {
-    border: 1px solid #2c3e50;  /* visible lines */
-    padding: 0.5rem;            /* space inside cells */
-    text-align: left;
-    word-wrap: break-word;       /* break long URLs/emails to fit */
+th,
+td {
+	border: 1px solid #2c3e50; /* visible lines */
+	padding: 0.5rem; /* space inside cells */
+	text-align: left;
+	word-wrap: break-word; /* break long URLs/emails to fit */
 }
 
 td form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 	gap: 0.5rem;
+}
+
+.message {
+	padding: 0.5rem 1rem;
+	border-radius: 6px;
+	margin: 0.5rem 0;
+}
+
+.message.Info {
+	background: #d9edf7;
+	color: #31708f;
+	border: 1px solid #bce8f1;
+}
+.message.Success {
+	background: #dff0d8;
+	color: #3c763d;
+	border: 1px solid #d6e9c6;
+}
+.message.Warning {
+	background: #fcf8e3;
+	color: #8a6d3b;
+	border: 1px solid #faebcc;
+}
+.message.Error {
+	background: #f2dede;
+	color: #a94442;
+	border: 1px solid #ebccd1;
 }
