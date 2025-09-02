@@ -6,7 +6,7 @@ authors = ["sofa <babalark@proton.me>","d4wns-l1ght <neovx.23@proton.me>"]
 readme = "README.md"
 repository = "https://codeberg.org/babalark/webringer"
 keywords = ["webring", "website", "server", "social"]
-categories = ["command-line-utitilies", "web-programming"]
+categories = ["command-line-utilities", "web-programming"]
 license = "AGPL-3.0"
 edition = "2024"
 
