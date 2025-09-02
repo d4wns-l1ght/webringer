@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE sites SET approval_id = ? WHERE root_url = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "799308a604e8626dbd400c9213ce56f9a8b10ef36cf72697193a8c25c7be3fb4"
+}

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT site_id FROM approved_sites WHERE root_url=?",
+  "describe": {
+    "columns": [
+      {
+        "name": "site_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "5a9cf7fd0d785e86842147dd75d237a945181a7afedc125a70aa01c7ce23a980"
+}

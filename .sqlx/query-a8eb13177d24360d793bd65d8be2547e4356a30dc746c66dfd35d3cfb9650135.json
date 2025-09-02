@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO denial_records (date_added, admin_id, reason) VALUES (date('now'), ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "a8eb13177d24360d793bd65d8be2547e4356a30dc746c66dfd35d3cfb9650135"
+}

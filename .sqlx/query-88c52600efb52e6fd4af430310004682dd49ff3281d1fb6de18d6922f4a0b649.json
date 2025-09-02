@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM sites WHERE root_url = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "88c52600efb52e6fd4af430310004682dd49ff3281d1fb6de18d6922f4a0b649"
+}

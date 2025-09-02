@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE admins SET password_phc = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "6b5e78a8b33d3c82ea025b903ccb7cbb197c0d620bda430fda2d71f4a008cf3d"
+}

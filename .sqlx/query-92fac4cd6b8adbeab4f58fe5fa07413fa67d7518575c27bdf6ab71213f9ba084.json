@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO approval_records (date_added, admin_id) VALUES (date('now'), ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "92fac4cd6b8adbeab4f58fe5fa07413fa67d7518575c27bdf6ab71213f9ba084"
+}

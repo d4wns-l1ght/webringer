@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT root_url FROM approved_sites ORDER BY random() LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "root_url",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "8909dd4e04ac6b99295079ce1eb515ab2a0f15cd6c83a25b75da883feac7cd7b"
+}

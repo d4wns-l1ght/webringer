@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE sites SET denial_id = ? WHERE root_url = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "21481e184e02e119f45f7757dc502981ec488e1d72cecd57c82a93864d9c1ac2"
+}

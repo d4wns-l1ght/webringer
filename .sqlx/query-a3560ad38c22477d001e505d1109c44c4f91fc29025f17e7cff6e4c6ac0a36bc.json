@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT root_url FROM approved_sites WHERE site_id > ? ORDER BY site_id ASC LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "root_url",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "a3560ad38c22477d001e505d1109c44c4f91fc29025f17e7cff6e4c6ac0a36bc"
+}
