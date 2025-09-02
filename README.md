@@ -5,7 +5,7 @@ A crate for running a [webring](https://en.wikipedia.org/wiki/Webring). It comes
 GUI but you can just also add it to your project and use the `ring` module as the backend, and
 write your own frontend.
 
-## Running it
+## Running it as a binary
 ### Getting the executable
 
 Clone this repo and run `cargo build --release`, then move the executable at
@@ -25,3 +25,31 @@ with a `.env` file specifying a different database location with the form
 Then, open the website (whether hosted locally, on the web, etc), log into the default admin
 account (username: admin, password: admin), create a new admin account, **AND DELETE THE OLD ONE**.
 Now you're ready to go! Get your friends to add their sites to the webring!
+
+## Using it as a library crate
+If you'd rather use your own html templates/css, you can use the `ring` and `site` modules and
+define your own `main.rs` file. Your project should look something like this (excluding
+development files like `Cargo.toml`):
+```
+.
+├── src
+│   └── main.rs
+├── static
+│   ├── css
+│   │   └── style.css
+│   ├── 404.html
+│   └── logo.svg
+├── templates
+│   ├── admin
+│   │   ├── account
+│   │   │   └── change-password.html
+│   │   ├── account.html
+│   │   ├── add.html
+│   │   ├── landing_page.html
+│   │   └── sites_view.html
+│   ├── base.html
+│   ├── index.html
+│   ├── join.html
+│   ├── list.html
+│   └── login.html
+```
