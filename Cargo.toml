@@ -1,6 +1,13 @@
 [package]
 name = "webringer"
-version = "0.1.0"
+description = "A bin/lib crate for a webring site"
+version = "1.0.0"
+authors = ["sofa <babalark@proton.me>","d4wns-l1ght <neovx.23@proton.me>"]
+readme = "README.md"
+repository = "https://codeberg.org/babalark/webringer"
+keywords = ["webring", "website", "server", "social"]
+categories = ["command-line-utitilies", "web-programming"]
+license = "AGPL-3.0"
 edition = "2024"
 
 [dependencies]
