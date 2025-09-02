@@ -1,8 +1,8 @@
 # Webringer
-![Logo](https://github.com/d4wns-l1ght/webringer/blob/main/static/logo.svg)
+![Logo](static/logo.svg)
 
 A crate for running a [webring](https://en.wikipedia.org/wiki/Webring). It comes with a pre-made
-GUI but you can just also add it to your project and use the `ring` and `site` modules and write your own HTML/CSS (see [[#Using it as a library crate]])
+GUI but you can just also add it to your project and use the `ring` and `site` modules and write your own HTML/CSS (see [Using it as a library crate](#using-it-as-a-library-crate))
 
 ## Running it as a binary
 ### Getting the executable
@@ -10,7 +10,7 @@ GUI but you can just also add it to your project and use the `ring` and `site` m
 Run `cargo install webringer`
 
 ### The database
-This runs on an SQLite database, with the path set in the config file (see [[#Configuration]]), defaulting to `cwd/data.db`. 
+This runs on an SQLite database, with the path set in the config file (see [Configuration](#configuration)), defaulting to `cwd/data.db`. 
 The database will be automatically created when the program is executed.
 
 ### Actually running it
